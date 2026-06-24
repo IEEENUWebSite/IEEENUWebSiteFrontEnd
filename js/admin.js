@@ -5,14 +5,17 @@
 (function () {
   'use strict';
 
-  const API_BASE = 'https://localhost:7105/api';
+  const API_BASE = 'http://localhost:5126/api';
   const ENDPOINTS = {
     events: `${API_BASE}/Events`,
     blog: `${API_BASE}/Blog`,
     upload: `${API_BASE}/Upload`,
+    members: `${API_BASE}/Members`,
+    committees: `${API_BASE}/Committees`,
+    recruitment: `${API_BASE}/Recruitment`
   };
 
-  const ADMIN_ROLES = ['admin', 'board', 'media'];
+  const ADMIN_ROLES = ['admin', 'board', 'media', 'moderator'];
 
   // ── Auth ──
   function getToken() { return localStorage.getItem('ieee_token'); }
@@ -41,6 +44,18 @@
     initEventModal();
     initBlogModal();
     initImageUploadPreviews();
+
+    if (role === 'admin') {
+      const navMembers = document.getElementById('nav-members');
+      if (navMembers) navMembers.style.display = 'block';
+      const navApplications = document.getElementById('nav-applications');
+      if (navApplications) navApplications.style.display = 'block';
+      loadMembers();
+      loadCommitteesForDropdown();
+      initMemberModal();
+      loadApplications();
+      initApplicationModal();
+    }
   });
 
   function initTopbar(member) {
@@ -49,7 +64,7 @@
     if (nameEl) nameEl.textContent = member.fullName || '';
     if (avatarEl) {
       if (member.profilePictureUrl) {
-        avatarEl.innerHTML = `<img src="${member.profilePictureUrl}" alt="" class="topbar-avatar-img" />`;
+        avatarEl.innerHTML = `<img src="${member.profilePictureUrl}" alt="" class="topbar-avatar-img" style="width: 36px; height: 36px; object-fit: cover; border-radius: 50%;" />`;
       } else {
         avatarEl.textContent = (member.fullName || 'A').charAt(0).toUpperCase();
       }
@@ -59,7 +74,7 @@
   function initSidebar() {
     const navItems = document.querySelectorAll('.dash-nav-item[data-section]');
     const titleEl = document.getElementById('topbarTitle');
-    const titles = { events: 'Events Manager', blog: 'Blog Manager' };
+    const titles = { events: 'Events Manager', blog: 'Blog Manager', members: 'Members Manager', applications: 'Applications Manager' };
     navItems.forEach(item => {
       item.addEventListener('click', (e) => {
         e.preventDefault();
@@ -425,27 +440,395 @@
     setButtonLoading(btn, true);
 
     try {
-      const endpoint = deleteTarget.type === 'event' ? ENDPOINTS.events : ENDPOINTS.blog;
+      let endpoint;
+      if (deleteTarget.type === 'event') endpoint = ENDPOINTS.events;
+      else if (deleteTarget.type === 'member') endpoint = ENDPOINTS.members;
+      else endpoint = ENDPOINTS.blog;
+
       const res = await fetch(`${endpoint}/${deleteTarget.id}`, { method: 'DELETE', headers: authHeaders(true) });
       if (res.status === 401) { logout(); return; }
-      if (!res.ok) throw new Error('Delete failed.');
+      if (!res.ok) {
+        const errData = await res.json();
+        throw new Error(errData.message || 'Delete failed.');
+      }
 
       bootstrap.Modal.getInstance(document.getElementById('deleteModal')).hide();
 
       if (deleteTarget.type === 'event') {
         await loadEvents();
         showFeedback('eventsFeedback', 'success', 'Event deleted successfully.');
+      } else if (deleteTarget.type === 'member') {
+        await loadMembers();
+        showFeedback('membersFeedback', 'success', 'Member deleted successfully.');
       } else {
         await loadBlog();
         showFeedback('blogFeedback', 'success', 'Post deleted successfully.');
       }
     } catch (err) {
       console.error('Delete error:', err);
-      const feedbackId = deleteTarget.type === 'event' ? 'eventsFeedback' : 'blogFeedback';
+      let feedbackId = 'blogFeedback';
+      if (deleteTarget.type === 'event') feedbackId = 'eventsFeedback';
+      else if (deleteTarget.type === 'member') feedbackId = 'membersFeedback';
+
       bootstrap.Modal.getInstance(document.getElementById('deleteModal')).hide();
-      showFeedback(feedbackId, 'error', 'Failed to delete. Please try again.');
+      showFeedback(feedbackId, 'error', err.message || 'Failed to delete. Please try again.');
     } finally {
       setButtonLoading(btn, false);
+    }
+  }
+
+  // ══════════════════════════════════════════
+  //  MEMBERS MANAGEMENT
+  // ══════════════════════════════════════════
+  let allCommittees = [];
+
+  async function loadCommitteesForDropdown() {
+    try {
+      const res = await fetch(ENDPOINTS.committees);
+      if (!res.ok) throw new Error('Failed to load committees');
+      allCommittees = await res.json();
+      const select = document.getElementById('memberCommittee');
+      if (select) {
+        select.innerHTML = allCommittees.map(c => `<option value="${c.id}">${escapeHTML(c.name)}</option>`).join('');
+      }
+    } catch (err) {
+      console.error(err);
+    }
+  }
+
+  async function loadMembers() {
+    const tbody = document.getElementById('membersTableBody');
+    if (!tbody) return;
+    try {
+      const res = await fetch(ENDPOINTS.members, { headers: authHeaders() });
+      if (res.status === 401) { logout(); return; }
+      if (!res.ok) throw new Error('Failed to fetch members.');
+      const members = await res.json();
+
+      if (members.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="8" class="text-center text-muted py-4">No members found.</td></tr>`;
+        return;
+      }
+
+      tbody.innerHTML = members.map(m => {
+        const isSelf = getMember() && getMember().id === m.id;
+        const statusBadge = m.isActive 
+          ? `<span class="badge bg-success-subtle text-success border border-success-subtle">Active</span>` 
+          : `<span class="badge bg-danger-subtle text-danger border border-danger-subtle">Inactive</span>`;
+        
+        const toggleStatusBtn = isSelf 
+          ? '' 
+          : `<button onclick="toggleMemberStatus(${m.id}, ${m.isActive})" class="btn btn-sm btn-link p-0 text-decoration-none me-2" title="Toggle Active Status">
+               <i class="bi ${m.isActive ? 'bi-toggle-on text-success' : 'bi-toggle-off text-muted'}" style="font-size: 1.25rem;"></i>
+             </button>`;
+
+        const deleteBtn = isSelf 
+          ? '' 
+          : `<button onclick="confirmDeleteMember(${m.id}, '${escapeAttr(m.fullName)}')" class="btn btn-action btn-action-delete" title="Delete Member">
+               <i class="bi bi-trash"></i>
+             </button>`;
+
+        const avatarMarkup = m.profilePictureUrl
+          ? `<img src="${m.profilePictureUrl}" class="table-img rounded-circle" style="width: 36px; height: 36px; object-fit: cover; flex-shrink: 0;" alt="" />`
+          : `<div class="table-img-placeholder rounded-circle" style="width: 36px; height: 36px; display: inline-flex; align-items: center; justify-content: center; background: rgba(0, 102, 204, 0.15); color: #0066cc; font-weight: 600; font-size: 0.85rem; flex-shrink: 0; border: 1px solid rgba(0, 102, 204, 0.25);">${(m.fullName || 'M').charAt(0).toUpperCase()}</div>`;
+
+        return `
+          <tr>
+            <td>
+              <div class="d-flex align-items-center gap-2">
+                ${avatarMarkup}
+                <span class="fw-semibold">${escapeHTML(m.fullName)}</span>
+              </div>
+            </td>
+            <td>
+              <div style="font-size: 0.85rem;">${escapeHTML(m.email)}</div>
+              <div style="font-size: 0.75rem; color: var(--ieee-secondary);">${escapeHTML(m.phone)}</div>
+            </td>
+            <td><code>${escapeHTML(m.nuid)}</code></td>
+            <td>
+              <div style="font-size: 0.85rem;">${escapeHTML(m.faculty)}</div>
+              <div style="font-size: 0.75rem; color: var(--ieee-secondary);">${escapeHTML(m.major)} (${escapeHTML(m.academicYear)})</div>
+            </td>
+            <td><span class="badge bg-light text-dark border">${escapeHTML(m.committeeName || 'None')}</span></td>
+            <td><span class="badge bg-info-subtle text-primary border border-info-subtle">${escapeHTML(m.role)}</span></td>
+            <td>${statusBadge}</td>
+            <td>
+              <div class="d-flex align-items-center gap-1">
+                ${toggleStatusBtn}
+                <button onclick="openEditMemberModal(${escapeAttr(JSON.stringify(m))})" class="btn btn-action btn-action-edit" title="Edit Member">
+                  <i class="bi bi-pencil"></i>
+                </button>
+                ${deleteBtn}
+              </div>
+            </td>
+          </tr>
+        `;
+      }).join('');
+    } catch (err) {
+      console.error(err);
+      tbody.innerHTML = `<tr><td colspan="8" class="text-center text-danger py-4">Error loading members.</td></tr>`;
+    }
+  }
+
+  window.toggleMemberStatus = async function (id, currentStatus) {
+    try {
+      const res = await fetch(`${ENDPOINTS.members}/${id}/Status`, {
+        method: 'PUT',
+        headers: authHeaders(true),
+        body: JSON.stringify({ isActive: !currentStatus })
+      });
+      if (res.status === 401) { logout(); return; }
+      if (!res.ok) {
+        const errorData = await res.json();
+        throw new Error(errorData.message || 'Failed to update member status.');
+      }
+      await loadMembers();
+      showFeedback('membersFeedback', 'success', 'Member status updated successfully.');
+    } catch (err) {
+      console.error(err);
+      showFeedback('membersFeedback', 'error', err.message || 'Failed to toggle status.');
+    }
+  };
+
+  window.openEditMemberModal = function (member) {
+    hideFeedback('memberFormFeedback');
+    document.getElementById('memberId').value = member.id;
+    document.getElementById('memberFullName').value = member.fullName || '';
+    document.getElementById('memberEmail').value = member.email || '';
+    document.getElementById('memberPhone').value = member.phone || '';
+    document.getElementById('memberNuid').value = member.nuid || '';
+    document.getElementById('memberAcademicYear').value = member.academicYear || 'Freshman';
+    document.getElementById('memberFaculty').value = member.faculty || '';
+    document.getElementById('memberMajor').value = member.major || '';
+    document.getElementById('memberCommittee').value = member.committeeId || '';
+    document.getElementById('memberRole').value = member.role || 'Member';
+    document.getElementById('memberPassword').value = '';
+
+    new bootstrap.Modal(document.getElementById('memberModal')).show();
+  };
+
+  window.confirmDeleteMember = function (id, name) {
+    deleteTarget = { type: 'member', id };
+    document.getElementById('deleteMessage').textContent = `Are you sure you want to delete member "${name}"? This action cannot be undone.`;
+    new bootstrap.Modal(document.getElementById('deleteModal')).show();
+  };
+
+  function initMemberModal() {
+    const saveBtn = document.getElementById('memberSaveBtn');
+    if (saveBtn) {
+      saveBtn.addEventListener('click', async () => {
+        const form = document.getElementById('memberForm');
+        if (!form) return;
+        hideFeedback('memberFormFeedback');
+
+        if (!form.checkValidity()) {
+          form.classList.add('was-validated');
+          return;
+        }
+
+        const id = document.getElementById('memberId').value;
+        const payload = {
+          fullName: document.getElementById('memberFullName').value,
+          email: document.getElementById('memberEmail').value,
+          phone: document.getElementById('memberPhone').value,
+          nuid: document.getElementById('memberNuid').value,
+          academicYear: document.getElementById('memberAcademicYear').value,
+          faculty: document.getElementById('memberFaculty').value,
+          major: document.getElementById('memberMajor').value,
+          committeeId: parseInt(document.getElementById('memberCommittee').value),
+          role: document.getElementById('memberRole').value
+        };
+
+        const pwdVal = document.getElementById('memberPassword').value;
+        if (pwdVal) {
+          payload.password = pwdVal;
+        }
+
+        setButtonLoading(saveBtn, true);
+        try {
+          const res = await fetch(`${ENDPOINTS.members}/${id}`, {
+            method: 'PUT',
+            headers: authHeaders(true),
+            body: JSON.stringify(payload)
+          });
+
+          if (res.status === 401) { logout(); return; }
+          if (!res.ok) {
+            const errData = await res.json();
+            throw new Error(errData.message || 'Failed to update member.');
+          }
+
+          bootstrap.Modal.getInstance(document.getElementById('memberModal')).hide();
+          await loadMembers();
+          showFeedback('membersFeedback', 'success', 'Member details updated successfully.');
+        } catch (err) {
+          console.error(err);
+          showFeedback('memberFormFeedback', 'error', err.message || 'Error updating member details.');
+        } finally {
+          setButtonLoading(saveBtn, false);
+        }
+      });
+    }
+  }
+
+  // ── Applications Manager ──
+  let allApplications = [];
+
+  async function loadApplications() {
+    const tbody = document.getElementById('applicationsTableBody');
+    if (!tbody) return;
+    try {
+      const res = await fetch(ENDPOINTS.recruitment, { headers: authHeaders() });
+      if (res.status === 401) { logout(); return; }
+      if (!res.ok) throw new Error('Failed to fetch applications.');
+      allApplications = await res.json();
+
+      if (allApplications.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="8" class="text-center text-muted py-4">No applications found.</td></tr>`;
+        return;
+      }
+
+      tbody.innerHTML = allApplications.map(a => {
+        const dateStr = new Date(a.appliedDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+        
+        let statusBadge = '';
+        if (a.status.toLowerCase() === 'pending') {
+          statusBadge = `<span class="badge bg-warning-subtle text-warning border border-warning-subtle">Pending</span>`;
+        } else if (a.status.toLowerCase() === 'approved') {
+          statusBadge = `<span class="badge bg-success-subtle text-success border border-success-subtle">Approved</span>`;
+        } else {
+          statusBadge = `<span class="badge bg-danger-subtle text-danger border border-danger-subtle">${escapeHTML(a.status)}</span>`;
+        }
+
+        return `
+          <tr>
+            <td><span class="text-muted" style="font-size: 0.85rem;">${dateStr}</span></td>
+            <td><span class="fw-semibold">${escapeHTML(a.fullName)}</span></td>
+            <td>
+              <div style="font-size: 0.85rem;">${escapeHTML(a.email)}</div>
+              <div style="font-size: 0.75rem; color: var(--ieee-secondary);">${escapeHTML(a.phone)}</div>
+            </td>
+            <td><code>${escapeHTML(a.nuid)}</code></td>
+            <td><span class="badge bg-light text-dark border">${escapeHTML(a.firstChoiceCommitteeName)}</span></td>
+            <td><span class="badge bg-light text-dark border">${escapeHTML(a.secondChoiceCommitteeName)}</span></td>
+            <td>${statusBadge}</td>
+            <td>
+              <button onclick="openApplicationDetailsModal(${a.id})" class="btn btn-ieee btn-ieee-primary py-1 px-2" style="font-size: 0.75rem;">
+                <i class="bi bi-eye me-1"></i> View Details
+              </button>
+            </td>
+          </tr>
+        `;
+      }).join('');
+    } catch (err) {
+      console.error(err);
+      tbody.innerHTML = `<tr><td colspan="8" class="text-center text-danger py-4">Error loading applications.</td></tr>`;
+    }
+  }
+
+  window.openApplicationDetailsModal = function (id) {
+    hideFeedback('applicationFormFeedback');
+    const app = allApplications.find(a => a.id === id);
+    if (!app) return;
+
+    document.getElementById('appDetailsId').value = app.id;
+    document.getElementById('appDetailsName').textContent = app.fullName;
+    document.getElementById('appDetailsEmail').textContent = app.email;
+    document.getElementById('appDetailsPhone').textContent = app.phone;
+    document.getElementById('appDetailsNuid').textContent = app.nuid;
+    document.getElementById('appDetailsAcademicYear').textContent = app.academicYear;
+    document.getElementById('appDetailsFacultyMajor').textContent = `${app.faculty} / ${app.major}`;
+    document.getElementById('appDetailsCommittees').innerHTML = `
+      <div style="font-size: 0.85rem;"><span class="fw-semibold text-primary">1st Choice:</span> ${escapeHTML(app.firstChoiceCommitteeName)}</div>
+      <div style="font-size: 0.85rem;"><span class="fw-semibold text-secondary">2nd Choice:</span> ${escapeHTML(app.secondChoiceCommitteeName)}</div>
+    `;
+
+    document.getElementById('appDetailsBio').textContent = app.bio || 'No bio provided.';
+    document.getElementById('appDetailsExperience').textContent = app.pastExperience || 'No past experience listed.';
+    document.getElementById('appDetailsWhyJoin').textContent = app.whyJoin || 'Not answered.';
+    document.getElementById('appDetailsWhatKnow').textContent = app.whatDoYouKnow || 'Not answered.';
+
+    const statusBadgeEl = document.getElementById('appDetailsStatusBadge');
+    let badgeClass = 'bg-warning-subtle text-warning border border-warning-subtle';
+    if (app.status.toLowerCase() === 'approved') {
+      badgeClass = 'bg-success-subtle text-success border border-success-subtle';
+    } else if (app.status.toLowerCase() === 'rejected') {
+      badgeClass = 'bg-danger-subtle text-danger border border-danger-subtle';
+    }
+    statusBadgeEl.innerHTML = `<span class="badge ${badgeClass}">${escapeHTML(app.status)}</span>`;
+
+    const acceptBtn = document.getElementById('appAcceptBtn');
+    const rejectBtn = document.getElementById('appRejectBtn');
+    if (app.status.toLowerCase() === 'pending') {
+      acceptBtn.style.display = '';
+      rejectBtn.style.display = '';
+    } else {
+      acceptBtn.style.display = 'none';
+      rejectBtn.style.display = 'none';
+    }
+
+    new bootstrap.Modal(document.getElementById('applicationModal')).show();
+  };
+
+  function initApplicationModal() {
+    const acceptBtn = document.getElementById('appAcceptBtn');
+    const rejectBtn = document.getElementById('appRejectBtn');
+
+    if (acceptBtn) {
+      acceptBtn.addEventListener('click', async () => {
+        const id = document.getElementById('appDetailsId').value;
+        setButtonLoading(acceptBtn, true);
+        hideFeedback('applicationFormFeedback');
+        try {
+          const res = await fetch(`${ENDPOINTS.recruitment}/${id}/Accept`, {
+            method: 'POST',
+            headers: authHeaders()
+          });
+          if (res.status === 401) { logout(); return; }
+          if (!res.ok) {
+            const errData = await res.json().catch(() => ({}));
+            throw new Error(errData.message || 'Failed to accept application.');
+          }
+
+          bootstrap.Modal.getInstance(document.getElementById('applicationModal')).hide();
+          await loadApplications();
+          if (typeof loadMembers === 'function') await loadMembers();
+          showFeedback('applicationsFeedback', 'success', 'Application approved successfully! Member account is registered.');
+        } catch (err) {
+          console.error(err);
+          showFeedback('applicationFormFeedback', 'error', err.message || 'Error accepting application.');
+        } finally {
+          setButtonLoading(acceptBtn, false);
+        }
+      });
+    }
+
+    if (rejectBtn) {
+      rejectBtn.addEventListener('click', async () => {
+        const id = document.getElementById('appDetailsId').value;
+        setButtonLoading(rejectBtn, true);
+        hideFeedback('applicationFormFeedback');
+        try {
+          const res = await fetch(`${ENDPOINTS.recruitment}/${id}/Reject`, {
+            method: 'POST',
+            headers: authHeaders()
+          });
+          if (res.status === 401) { logout(); return; }
+          if (!res.ok) {
+            const errData = await res.json().catch(() => ({}));
+            throw new Error(errData.message || 'Failed to reject application.');
+          }
+
+          bootstrap.Modal.getInstance(document.getElementById('applicationModal')).hide();
+          await loadApplications();
+          showFeedback('applicationsFeedback', 'success', 'Application rejected successfully.');
+        } catch (err) {
+          console.error(err);
+          showFeedback('applicationFormFeedback', 'error', err.message || 'Error rejecting application.');
+        } finally {
+          setButtonLoading(rejectBtn, false);
+        }
+      });
     }
   }
 

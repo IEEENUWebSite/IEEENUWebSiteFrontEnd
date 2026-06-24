@@ -5,7 +5,7 @@
 (function () {
   'use strict';
 
-  const API_BASE = 'https://localhost:7105/api';
+  const API_BASE = 'http://localhost:5126/api';
   const ENDPOINTS = {
     myTasks: `${API_BASE}/Tasks/MyTasks`,
     taskStatus: (id) => `${API_BASE}/Tasks/${id}/Status`,
@@ -15,7 +15,7 @@
   };
 
   const STATUSES = ['ToDo', 'InProgress', 'Completed'];
-  const ADMIN_ROLES = ['admin', 'board', 'media'];
+  const ADMIN_ROLES = ['admin', 'board', 'media', 'moderator'];
   let allTasks = [];
 
   // ── Auth Guard ──
@@ -63,7 +63,7 @@
     if (nameEl) nameEl.textContent = member.fullName || '';
     if (avatarEl) {
       if (member.profilePictureUrl) {
-        avatarEl.innerHTML = `<img src="${member.profilePictureUrl}" alt="" class="topbar-avatar-img" />`;
+        avatarEl.innerHTML = `<img src="${member.profilePictureUrl}" alt="" class="topbar-avatar-img" style="width: 36px; height: 36px; object-fit: cover; border-radius: 50%;" />`;
       } else {
         avatarEl.textContent = (member.fullName || 'M').charAt(0).toUpperCase();
       }
@@ -402,6 +402,11 @@
         };
         if (avatarUrl) payload.profilePictureUrl = avatarUrl;
 
+        const pwdVal = document.getElementById('editPassword').value;
+        if (pwdVal) {
+          payload.password = pwdVal;
+        }
+
         const res = await fetch(ENDPOINTS.updateProfile, { method: 'PUT', headers: authHeaders(true), body: JSON.stringify(payload) });
         if (res.status === 401) { logout(); return; }
         if (!res.ok) { const d = await res.json().catch(() => ({})); throw new Error(d.message || 'Update failed.'); }
@@ -438,6 +443,7 @@
     document.getElementById('editFaculty').value = member.faculty || 'Computer Science';
     document.getElementById('editMajor').value = member.major || '';
     document.getElementById('editAcademicYear').value = member.academicYear || 'Freshman';
+    document.getElementById('editPassword').value = '';
 
     const preview = document.getElementById('avatarPreview');
     if (member.profilePictureUrl) {

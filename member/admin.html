@@ -31,6 +31,12 @@
                 <a class="dash-nav-item" data-section="blog" href="#">
                     <i class="bi bi-journal-richtext"></i> Blog Manager
                 </a>
+                <a class="dash-nav-item" data-section="members" href="#" id="nav-members" style="display: none;">
+                    <i class="bi bi-people"></i> Members Manager
+                </a>
+                <a class="dash-nav-item" data-section="applications" href="#" id="nav-applications" style="display: none;">
+                    <i class="bi bi-file-earmark-person"></i> Applications Manager
+                </a>
             </nav>
             <div class="sidebar-footer">
                 <a class="dash-nav-item" href="#" id="logoutBtn" style="border-left: none; padding-left: 0;">
@@ -113,6 +119,64 @@
                         </div>
                     </div>
                     <div id="blogFeedback" class="feedback-panel feedback-panel-light mt-3 text-center"></div>
+                </div>
+
+                <!-- ===== Members Manager ===== -->
+                <div class="dash-section" id="section-members">
+                    <div class="admin-table-card">
+                        <div class="admin-table-header">
+                            <h3>All Members</h3>
+                        </div>
+                        <div style="overflow-x: auto;">
+                            <table class="admin-table">
+                                <thead>
+                                    <tr>
+                                        <th>Name</th>
+                                        <th>Email / Phone</th>
+                                        <th>NU ID</th>
+                                        <th>Faculty / Major</th>
+                                        <th>Committee</th>
+                                        <th>Role</th>
+                                        <th>Status</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="membersTableBody">
+                                    <tr><td colspan="8" class="text-center text-muted py-4">Loading members...</td></tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                    <div id="membersFeedback" class="feedback-panel feedback-panel-light mt-3 text-center"></div>
+                </div>
+
+                <!-- ===== Applications Manager ===== -->
+                <div class="dash-section" id="section-applications">
+                    <div class="admin-table-card">
+                        <div class="admin-table-header">
+                            <h3>Recruitment Applications</h3>
+                        </div>
+                        <div style="overflow-x: auto;">
+                            <table class="admin-table">
+                                <thead>
+                                    <tr>
+                                        <th>Date</th>
+                                        <th>Name</th>
+                                        <th>Email / Phone</th>
+                                        <th>NU ID</th>
+                                        <th>First Choice</th>
+                                        <th>Second Choice</th>
+                                        <th>Status</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="applicationsTableBody">
+                                    <tr><td colspan="8" class="text-center text-muted py-4">Loading applications...</td></tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                    <div id="applicationsFeedback" class="feedback-panel feedback-panel-light mt-3 text-center"></div>
                 </div>
 
             </div>
@@ -228,6 +292,186 @@
                     <button type="button" class="btn btn-ieee btn-ieee-outline" data-bs-dismiss="modal" style="padding: 0.5rem 1.25rem; font-size: 0.82rem; color: var(--ieee-secondary); border-color: rgba(0,0,0,0.15);">Cancel</button>
                     <button type="button" class="btn btn-ieee btn-ieee-primary" id="blogSaveBtn" style="padding: 0.5rem 1.5rem; font-size: 0.82rem;">
                         <span class="btn-text">Save Post</span>
+                        <span class="btn-spinner"></span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Edit Member Modal -->
+    <div class="modal fade modal-admin" id="memberModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Edit Member Details</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="memberForm" novalidate>
+                        <input type="hidden" id="memberId" />
+                        <div class="mb-3">
+                            <label class="form-label" for="memberFullName">Full Name</label>
+                            <input type="text" class="form-control" id="memberFullName" required maxlength="150" />
+                        </div>
+                        <div class="row g-3 mb-3">
+                            <div class="col-md-6">
+                                <label class="form-label" for="memberEmail">Email Address</label>
+                                <input type="email" class="form-control" id="memberEmail" required />
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label" for="memberPhone">Phone Number</label>
+                                <input type="text" class="form-control" id="memberPhone" required maxlength="20" />
+                            </div>
+                        </div>
+                        <div class="row g-3 mb-3">
+                            <div class="col-md-6">
+                                <label class="form-label" for="memberNuid">NU ID</label>
+                                <input type="text" class="form-control" id="memberNuid" required maxlength="50" />
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label" for="memberAcademicYear">Academic Year</label>
+                                <select class="form-select" id="memberAcademicYear" required>
+                                    <option value="Freshman">Freshman</option>
+                                    <option value="Sophomore">Sophomore</option>
+                                    <option value="Junior">Junior</option>
+                                    <option value="Senior 1">Senior 1</option>
+                                    <option value="Senior 2">Senior 2</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="row g-3 mb-3">
+                            <div class="col-md-6">
+                                <label class="form-label" for="memberFaculty">Faculty</label>
+                                <input type="text" class="form-control" id="memberFaculty" required maxlength="100" />
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label" for="memberMajor">Major</label>
+                                <input type="text" class="form-control" id="memberMajor" required maxlength="100" />
+                            </div>
+                        </div>
+                        <div class="row g-3 mb-3">
+                            <div class="col-md-6">
+                                <label class="form-label" for="memberCommittee">Committee</label>
+                                <select class="form-select" id="memberCommittee" required>
+                                    <!-- Populated dynamically -->
+                                </select>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label" for="memberRole">System Role</label>
+                                <select class="form-select" id="memberRole" required>
+                                    <option value="Admin">Admin</option>
+                                    <option value="Board">Board</option>
+                                    <option value="Moderator">Moderator</option>
+                                    <option value="Media">Media</option>
+                                    <option value="Member">Member</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label" for="memberPassword">New Password (leave blank to keep unchanged)</label>
+                            <input type="password" class="form-control" id="memberPassword" placeholder="Enter new password (min 6 characters)" minlength="6" />
+                        </div>
+                    </form>
+                    <div id="memberFormFeedback" class="feedback-panel feedback-panel-light text-center"></div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-ieee btn-ieee-outline" data-bs-dismiss="modal" style="padding: 0.5rem 1.25rem; font-size: 0.82rem; color: var(--ieee-secondary); border-color: rgba(0,0,0,0.15);">Cancel</button>
+                    <button type="button" class="btn btn-ieee btn-ieee-primary" id="memberSaveBtn" style="padding: 0.5rem 1.5rem; font-size: 0.82rem;">
+                        <span class="btn-text">Save Changes</span>
+                        <span class="btn-spinner"></span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Application Details Modal -->
+    <div class="modal fade modal-admin" id="applicationModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Application Details</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div id="applicationFormFeedback" class="feedback-panel feedback-panel-light text-center mb-3"></div>
+                    <input type="hidden" id="appDetailsId" />
+                    
+                    <div class="row g-3 mb-4">
+                        <div class="col-md-6">
+                            <div class="fw-bold text-uppercase text-muted" style="font-size: 0.75rem;">Applicant Name</div>
+                            <div id="appDetailsName" class="fs-5 fw-semibold mt-1"></div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="fw-bold text-uppercase text-muted" style="font-size: 0.75rem;">Status</div>
+                            <div class="mt-1" id="appDetailsStatusBadge"></div>
+                        </div>
+                    </div>
+
+                    <div class="row g-3 mb-3">
+                        <div class="col-md-6">
+                            <div class="fw-bold text-uppercase text-muted" style="font-size: 0.75rem;">Email Address</div>
+                            <div id="appDetailsEmail" class="mt-1"></div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="fw-bold text-uppercase text-muted" style="font-size: 0.75rem;">Phone Number</div>
+                            <div id="appDetailsPhone" class="mt-1"></div>
+                        </div>
+                    </div>
+
+                    <div class="row g-3 mb-3">
+                        <div class="col-md-6">
+                            <div class="fw-bold text-uppercase text-muted" style="font-size: 0.75rem;">NU ID</div>
+                            <code id="appDetailsNuid" class="mt-1 d-inline-block"></code>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="fw-bold text-uppercase text-muted" style="font-size: 0.75rem;">Academic Year</div>
+                            <div id="appDetailsAcademicYear" class="mt-1"></div>
+                        </div>
+                    </div>
+
+                    <div class="row g-3 mb-3">
+                        <div class="col-md-6">
+                            <div class="fw-bold text-uppercase text-muted" style="font-size: 0.75rem;">Faculty / Major</div>
+                            <div id="appDetailsFacultyMajor" class="mt-1"></div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="fw-bold text-uppercase text-muted" style="font-size: 0.75rem;">Preferred Committees</div>
+                            <div id="appDetailsCommittees" class="mt-1"></div>
+                        </div>
+                    </div>
+
+                    <hr class="my-4" />
+
+                    <div class="mb-3">
+                        <div class="fw-bold text-uppercase text-muted" style="font-size: 0.75rem;">Applicant Bio</div>
+                        <div id="appDetailsBio" class="mt-2 p-3 bg-light rounded" style="font-size: 0.9rem; border: 1px solid rgba(0,0,0,0.06); white-space: pre-wrap;"></div>
+                    </div>
+
+                    <div class="mb-3">
+                        <div class="fw-bold text-uppercase text-muted" style="font-size: 0.75rem;">Past Experience</div>
+                        <div id="appDetailsExperience" class="mt-2 p-3 bg-light rounded" style="font-size: 0.9rem; border: 1px solid rgba(0,0,0,0.06); white-space: pre-wrap;"></div>
+                    </div>
+
+                    <div class="mb-3">
+                        <div class="fw-bold text-uppercase text-muted" style="font-size: 0.75rem;">Why do you want to join IEEE Nile University?</div>
+                        <div id="appDetailsWhyJoin" class="mt-2 p-3 bg-light rounded" style="font-size: 0.9rem; border: 1px solid rgba(0,0,0,0.06); white-space: pre-wrap;"></div>
+                    </div>
+
+                    <div class="mb-3">
+                        <div class="fw-bold text-uppercase text-muted" style="font-size: 0.75rem;">What do you know about IEEE Nile University?</div>
+                        <div id="appDetailsWhatKnow" class="mt-2 p-3 bg-light rounded" style="font-size: 0.9rem; border: 1px solid rgba(0,0,0,0.06); white-space: pre-wrap;"></div>
+                    </div>
+                </div>
+                <div class="modal-footer" id="appDetailsActions">
+                    <button type="button" class="btn btn-ieee btn-ieee-outline" data-bs-dismiss="modal" style="padding: 0.5rem 1.25rem; font-size: 0.82rem; color: var(--ieee-secondary); border-color: rgba(0,0,0,0.15);">Close</button>
+                    <button type="button" class="btn btn-ieee" id="appRejectBtn" style="padding: 0.5rem 1.25rem; font-size: 0.82rem; background: #dc3545; color: #fff;">
+                        <span class="btn-text">Reject Application</span>
+                        <span class="btn-spinner"></span>
+                    </button>
+                    <button type="button" class="btn btn-ieee btn-ieee-primary" id="appAcceptBtn" style="padding: 0.5rem 1.25rem; font-size: 0.82rem;">
+                        <span class="btn-text">Accept & Register Member</span>
                         <span class="btn-spinner"></span>
                     </button>
                 </div>

@@ -5,7 +5,7 @@
 (function () {
   'use strict';
 
-  const API_BASE = 'https://localhost:7105/api';
+  const API_BASE = 'http://localhost:5126/api';
   const ENDPOINTS = {
     blog: `${API_BASE}/Blog`,
     committees: `${API_BASE}/Committees`,

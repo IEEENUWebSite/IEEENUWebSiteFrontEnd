@@ -4,7 +4,7 @@
 (function () {
   'use strict';
 
-  const API_LOGIN = 'https://localhost:7105/api/Auth/Login';
+  const API_LOGIN = 'http://localhost:5126/api/Auth/Login';
 
   window.addEventListener('DOMContentLoaded', () => {
     // If already logged in, redirect
