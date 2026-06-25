@@ -5,7 +5,7 @@
 (function () {
   'use strict';
 
-  const API_BASE = 'http://localhost:5126/api';
+  const API_BASE = 'https://ieeenuwebsite-b6bfh8dfg3bqfue6.francecentral-01.azurewebsites.net/api';
   const ENDPOINTS = {
     myTasks: `${API_BASE}/Tasks/MyTasks`,
     taskStatus: (id) => `${API_BASE}/Tasks/${id}/Status`,

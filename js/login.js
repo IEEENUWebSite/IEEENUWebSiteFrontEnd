@@ -4,7 +4,7 @@
 (function () {
   'use strict';
 
-  const API_LOGIN = 'http://localhost:5126/api/Auth/Login';
+  const API_LOGIN = 'https://ieeenuwebsite-b6bfh8dfg3bqfue6.francecentral-01.azurewebsites.net/api/Auth/Login';
 
   window.addEventListener('DOMContentLoaded', () => {
     // If already logged in, redirect
