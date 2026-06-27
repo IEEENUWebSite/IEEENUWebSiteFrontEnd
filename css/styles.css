@@ -139,7 +139,7 @@ a:hover { color: var(--ieee-primary-hover); }
   width: 60%;
 }
 #mainNav.navbar-shrink {
-  background: rgba(33,37,41,0.95);
+  background: rgba(var(--ieee-dark-rgb), 0.95);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
   padding: 0.6rem 0;
