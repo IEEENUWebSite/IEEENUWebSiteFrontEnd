@@ -697,7 +697,11 @@ a:hover { color: var(--ieee-primary-hover); }
     backdrop-filter: blur(12px);
   }
   .page-section { padding: 4rem 0; }
-  .masthead { min-height: 90vh; }
+  .masthead {
+    min-height: 90vh;
+    padding-top: 100px;
+    padding-bottom: 60px;
+  }
 }
 @media (max-width: 767.98px) {
   .hero-glass-card { padding: 1.5rem; }
