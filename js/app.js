@@ -143,9 +143,18 @@
       const events = await res.json();
 
       const now = new Date();
+      now.setHours(0, 0, 0, 0); // Include events happening today
+
       const upcoming = events
-        .filter(e => new Date(e.eventDate) > now)
-        .sort((a, b) => new Date(a.eventDate) - new Date(b.eventDate))
+        .filter(e => {
+          const dateStr = e.eventDate || e.EventDate;
+          return dateStr && new Date(dateStr) >= now;
+        })
+        .sort((a, b) => {
+          const dateA = new Date(a.eventDate || a.EventDate);
+          const dateB = new Date(b.eventDate || b.EventDate);
+          return dateA - dateB;
+        })
         .slice(0, 3);
 
       if (upcoming.length === 0) {
@@ -159,10 +168,16 @@
 
       container.innerHTML = '';
       upcoming.forEach((event, idx) => {
-        const formattedDate = new Date(event.eventDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+        const eventDateVal = event.eventDate || event.EventDate;
+        const titleVal = event.title || event.Title || "";
+        const locationVal = event.location || event.Location || "";
+        const descriptionVal = event.description || event.Description || "";
+        const imageUrlVal = event.imageUrl || event.ImageUrl || "";
+
+        const formattedDate = new Date(eventDateVal).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
         const delay = idx * 60;
         
-        let excerpt = event.description || '';
+        let excerpt = descriptionVal;
         if (excerpt.length > 120) {
           excerpt = excerpt.substring(0, 117) + '...';
         }
@@ -172,8 +187,8 @@
         col.innerHTML = `
           <div class="event-hub-card reveal" style="transition-delay: ${delay}ms">
             <div class="event-image">
-              ${event.imageUrl
-                ? `<img src="${escapeHTML(event.imageUrl)}" alt="${escapeHTML(event.title)}" />`
+              ${imageUrlVal
+                ? `<img src="${escapeHTML(imageUrlVal)}" alt="${escapeHTML(titleVal)}" />`
                 : `<i class="bi bi-calendar-event event-icon-placeholder"></i>`
               }
               <span class="event-date-badge">${formattedDate}</span>
@@ -182,9 +197,9 @@
               <div class="d-flex align-items-center gap-2 mb-2">
                 <span class="event-status-badge upcoming">Upcoming</span>
               </div>
-              <h3>${escapeHTML(event.title)}</h3>
+              <h3>${escapeHTML(titleVal)}</h3>
               <div class="event-meta">
-                <i class="bi bi-geo-alt"></i>${escapeHTML(event.location)}
+                <i class="bi bi-geo-alt"></i>${escapeHTML(locationVal)}
               </div>
               <p>${escapeHTML(excerpt)}</p>
             </div>

@@ -412,20 +412,32 @@ a:hover { color: var(--ieee-primary-hover); }
   color: var(--ieee-white);
 }
 .form-floating > label {
-  color: rgba(255,255,255,0.55);
+  color: rgba(255, 255, 255, 0.6) !important;
+  background: transparent !important;
+  background-color: transparent !important;
   transition: transform 0.2s ease-in-out, color 0.2s ease-in-out;
 }
+.form-floating > label::after {
+  background: transparent !important;
+  background-color: transparent !important;
+}
 .form-floating > .form-control:focus ~ label,
-.form-floating > .form-control:not(:placeholder-shown) ~ label {
-  color: var(--ieee-primary);
-  transform: scale(0.82) translateY(-0.85rem) translateX(0.15rem);
-}
+.form-floating > .form-control:not(:placeholder-shown) ~ label,
 .form-floating > .form-select ~ label {
-  color: rgba(255,255,255,0.55);
+  color: rgba(255, 255, 255, 0.6) !important;
   transform: scale(0.82) translateY(-0.85rem) translateX(0.15rem);
+  background: transparent !important;
+  background-color: transparent !important;
 }
+.form-floating > .form-control:focus ~ label::after,
+.form-floating > .form-control:not(:placeholder-shown) ~ label::after,
+.form-floating > .form-select ~ label::after {
+  background: transparent !important;
+  background-color: transparent !important;
+}
+.form-floating > .form-control:focus ~ label,
 .form-floating > .form-select:focus ~ label {
-  color: var(--ieee-primary);
+  color: var(--ieee-primary) !important;
 }
 .form-select option {
   background: var(--ieee-dark);
@@ -445,11 +457,17 @@ a:hover { color: var(--ieee-primary-hover); }
   color: var(--ieee-dark);
 }
 .contact-section .form-floating > label {
-  color: var(--ieee-secondary);
+  color: var(--ieee-secondary) !important;
+  background: transparent !important;
+  background-color: transparent !important;
+}
+.contact-section .form-floating > label::after {
+  background: transparent !important;
+  background-color: transparent !important;
 }
 .contact-section .form-floating > .form-control:focus ~ label,
 .contact-section .form-floating > .form-control:not(:placeholder-shown) ~ label {
-  color: var(--ieee-primary);
+  color: var(--ieee-primary) !important;
 }
 
 /* Validation states */
