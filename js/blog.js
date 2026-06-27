@@ -1,7 +1,5 @@
-/**
- * IEEE Nile University — Blog Listing Page Logic
- * Handles: blog fetching, search filter, category filter, newsletter
- */
+/*ieee nile university — blog listing page logic
+handles: blog fetching, search filter, category filter, newsletter*/
 (function () {
   'use strict';
 
@@ -25,7 +23,7 @@
     initScrollAnimations();
   });
 
-  // ── Load Blog Posts ──
+  //load blog posts
   async function loadBlogPosts() {
     const grid = document.getElementById('blog-grid');
     try {
@@ -91,7 +89,7 @@
     initScrollAnimations();
   }
 
-  // ── Search ──
+  //search
   function initSearch() {
     const input = document.getElementById('blogSearch');
     if (!input) return;
@@ -106,7 +104,7 @@
     });
   }
 
-  // ── Category Filter ──
+  //category filter
   function initCategoryFilter() {
     const container = document.getElementById('categoryTags');
     if (!container) return;
@@ -125,7 +123,7 @@
   function applyFilters() {
     let filtered = allPosts;
 
-    // Search
+    //search
     if (searchQuery) {
       filtered = filtered.filter(p =>
         p.title.toLowerCase().includes(searchQuery) ||
@@ -133,7 +131,7 @@
       );
     }
 
-    // Category (soft match on title/content since backend doesn't have category field)
+    //category (soft match on title/content since backend doesn't have category field)
     if (activeCategory !== 'all') {
       const categoryMap = {
         'technical': ['code', 'programming', 'software', 'hardware', 'algorithm', 'technical', 'development'],
@@ -153,7 +151,7 @@
     renderPosts(filtered);
   }
 
-  // ── Newsletter ──
+  //newsletter
   function initNewsletter() {
     const form = document.getElementById('newsletterForm');
     const feedback = document.getElementById('newsletterFeedback');
@@ -199,7 +197,7 @@
     });
   }
 
-  // ── Footer ──
+  //footer
   async function loadFooterCommittees() {
     const footerList = document.getElementById('footer-committees-list');
     if (!footerList) return;
@@ -208,10 +206,10 @@
       if (!res.ok) return;
       const committees = await res.json();
       footerList.innerHTML = committees.map(c => `<span class="footer-link">${escapeHTML(c.name)}</span>`).join('');
-    } catch (e) { /* silent */ }
+    } catch (e) { /*silent*/ }
   }
 
-  // ── Scroll Animations ──
+  //scroll animations
   function initScrollAnimations() {
     const reveals = document.querySelectorAll('.reveal:not(.visible)');
     if (!reveals.length) return;
@@ -223,7 +221,7 @@
     reveals.forEach(el => observer.observe(el));
   }
 
-  // ── Helpers ──
+  //helpers
   function escapeHTML(str) { const d = document.createElement('div'); d.textContent = str; return d.innerHTML; }
   function truncate(str, len) { return str && str.length > len ? str.substring(0, len) + '...' : (str || ''); }
   function stripHTML(html) {

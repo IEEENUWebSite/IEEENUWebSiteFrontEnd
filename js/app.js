@@ -1,12 +1,10 @@
-/**
- * IEEE Nile University Student Branch — Frontend Application
- * Modules: Navbar, Committees, Recruitment, Contact, Scroll Animations
- */
+/*ieee nile university student branch — frontend application
+modules: navbar, committees, recruitment, contact, scroll animations*/
 
 (function () {
   'use strict';
 
-  // ── Configuration ──
+  //configuration
   const API_BASE = 'https://ieeenuwebsite-b6bfh8dfg3bqfue6.francecentral-01.azurewebsites.net/api';
   const ENDPOINTS = {
     committees: `${API_BASE}/Committees`,
@@ -15,7 +13,7 @@
     contact: `${API_BASE}/Contact`,
   };
 
-  // Committee name → Bootstrap Icon mapping
+  //committee name → bootstrap icon mapping
   const ICON_MAP = {
     'PR':        'bi-megaphone',
     'HR':        'bi-person-badge',
@@ -33,7 +31,7 @@
     return 'bi-people';
   }
 
-  // ── 1. Navbar Scroll Behavior ──
+  //navbar scroll behavior
   function initNavbar() {
     const nav = document.getElementById('mainNav');
     if (!nav) return;
@@ -49,7 +47,7 @@
     update();
     document.addEventListener('scroll', update, { passive: true });
 
-    // Collapse mobile menu on link click
+    //collapse mobile menu on link click
     const toggler = nav.querySelector('.navbar-toggler');
     const links = nav.querySelectorAll('#navbarResponsive .nav-link');
     links.forEach(link => {
@@ -61,7 +59,7 @@
     });
   }
 
-  // ── 2. Load Committees ──
+  //load committees
   async function loadCommittees() {
     const container = document.getElementById('committees-container');
     const firstChoice = document.getElementById('firstChoice');
@@ -73,10 +71,10 @@
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       const committees = await res.json();
 
-      // Clear skeleton loaders
+      //clear skeleton loaders
       container.innerHTML = '';
 
-      // Clear dropdowns
+      //clear dropdowns
       firstChoice.innerHTML = '<option value="" disabled selected>Select First Choice</option>';
       secondChoice.innerHTML = '<option value="">None</option>';
 
@@ -88,14 +86,14 @@
         return;
       }
 
-      // Footer committee list
+      //footer committee list
       let footerHTML = '';
 
       committees.forEach((c, idx) => {
         const icon = getCommitteeIcon(c.name);
         const delay = idx * 80;
 
-        // Committee card
+        //committee card
         const col = document.createElement('div');
         col.className = 'col-lg-4 col-md-6 mb-4';
         col.innerHTML = `
@@ -108,19 +106,19 @@
           </div>`;
         container.appendChild(col);
 
-        // Dropdown options
+        //dropdown options
         const opt1 = new Option(c.name, c.id);
         firstChoice.appendChild(opt1);
         const opt2 = new Option(c.name, c.id);
         secondChoice.appendChild(opt2);
 
-        // Footer list
+        //footer list
         footerHTML += `<span class="footer-link">${escapeHTML(c.name)}</span>`;
       });
 
       if (footerList) footerList.innerHTML = footerHTML;
 
-      // Trigger reveal for newly added cards
+      //trigger reveal for newly added cards
       initScrollAnimations();
 
     } catch (err) {
@@ -132,7 +130,7 @@
     }
   }
 
-  // ── Load Upcoming Events ──
+  //load upcoming events
   async function loadUpcomingEvents() {
     const container = document.getElementById('events-container');
     if (!container) return;
@@ -143,7 +141,7 @@
       const events = await res.json();
 
       const now = new Date();
-      now.setHours(0, 0, 0, 0); // Include events happening today
+      now.setHours(0, 0, 0, 0); //include events happening today
 
       const upcoming = events
         .filter(e => {
@@ -223,7 +221,7 @@
     }
   }
 
-  // ── 3. Recruitment Form ──
+  //recruitment form
   function initRecruitmentForm() {
     const form = document.getElementById('recruitmentForm');
     const submitBtn = document.getElementById('submitBtn');
@@ -233,18 +231,18 @@
     form.addEventListener('submit', async (e) => {
       e.preventDefault();
 
-      // Reset feedback
+      //reset feedback
       hideFeedback(feedback);
       clearValidation(form);
 
-      // Validate
+      //validate
       const errors = validateRecruitmentForm();
       if (errors.length > 0) {
         errors.forEach(({ field, message }) => showFieldError(field, message));
         return;
       }
 
-      // Build payload
+      //build payload
       const payload = {
         fullName: val('fullName'),
         email: val('email'),
@@ -261,7 +259,7 @@
         whatDoYouKnow: val('whatDoYouKnow'),
       };
 
-      // Submit
+      //submit
       setButtonLoading(submitBtn, true);
 
       try {
@@ -309,7 +307,7 @@
     return errors;
   }
 
-  // ── 4. Contact Form ──
+  //contact form
   function initContactForm() {
     const form = document.getElementById('contactForm');
     const btn = document.getElementById('contactSubmitButton');
@@ -373,7 +371,7 @@
     });
   }
 
-  // ── 5. Scroll Reveal Animations ──
+  //scroll reveal animations
   function initScrollAnimations() {
     const reveals = document.querySelectorAll('.reveal:not(.visible)');
     if (!reveals.length) return;
@@ -393,7 +391,7 @@
     reveals.forEach(el => observer.observe(el));
   }
 
-  // ── Helpers ──
+  //helpers
   function val(id) {
     const el = document.getElementById(id);
     return el ? el.value : '';
@@ -449,7 +447,7 @@
     }
   }
 
-  // ── Initialize ──
+  //initialize
   window.addEventListener('DOMContentLoaded', () => {
     initNavbar();
     loadCommittees();
