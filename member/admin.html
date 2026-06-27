@@ -31,6 +31,12 @@
                 <a class="dash-nav-item" data-section="blog" href="#">
                     <i class="bi bi-journal-richtext"></i> Blog Manager
                 </a>
+                <a class="dash-nav-item" data-section="attendance" href="#" id="nav-attendance" style="display: none;">
+                    <i class="bi bi-calendar-check"></i> Attendance Desk
+                </a>
+                <a class="dash-nav-item" data-section="tasks" href="#" id="nav-tasks" style="display: none;">
+                    <i class="bi bi-list-task"></i> Task Manager
+                </a>
                 <a class="dash-nav-item" data-section="members" href="#" id="nav-members" style="display: none;">
                     <i class="bi bi-people"></i> Members Manager
                 </a>
@@ -177,6 +183,73 @@
                         </div>
                     </div>
                     <div id="applicationsFeedback" class="feedback-panel feedback-panel-light mt-3 text-center"></div>
+                </div>
+
+                <!-- ===== Attendance Manager ===== -->
+                <div class="dash-section" id="section-attendance">
+                    <div class="admin-table-card">
+                        <div class="admin-table-header">
+                            <h3>Attendance Desk</h3>
+                            <div class="d-flex align-items-center gap-3">
+                                <label for="attendanceEventSelect" class="form-label mb-0" style="font-size: 0.85rem; font-weight: 600; white-space: nowrap;">Select Event:</label>
+                                <select id="attendanceEventSelect" class="form-select form-select-sm" style="min-width: 250px;">
+                                    <option value="">-- Choose Event --</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div style="overflow-x: auto;">
+                            <table class="admin-table">
+                                <thead>
+                                    <tr>
+                                        <th>Member Name</th>
+                                        <th>Email / Phone</th>
+                                        <th>NU ID / Committee</th>
+                                        <th style="text-align: center; width: 120px;">Attended?</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="attendanceTableBody">
+                                    <tr><td colspan="4" class="text-center text-muted py-4">Please select an event from the dropdown above.</td></tr>
+                                </tbody>
+                            </table>
+                        </div>
+                        <div class="admin-table-footer d-flex justify-content-end p-3 border-top" id="attendanceSaveContainer" style="display: none !important;">
+                            <button class="btn btn-ieee btn-ieee-primary" id="saveAttendanceBtn" style="padding: 0.5rem 1.5rem; font-size: 0.82rem;">
+                                <span class="btn-text">Save Attendance</span>
+                                <span class="btn-spinner"></span>
+                            </button>
+                        </div>
+                    </div>
+                    <div id="attendanceFeedback" class="feedback-panel feedback-panel-light mt-3 text-center"></div>
+                </div>
+
+                <!-- ===== Tasks Manager ===== -->
+                <div class="dash-section" id="section-tasks">
+                    <div class="admin-table-card">
+                        <div class="admin-table-header">
+                            <h3>Task Board Manager</h3>
+                            <button class="btn btn-ieee btn-ieee-primary" style="padding: 0.5rem 1.25rem; font-size: 0.82rem;" id="addTaskBtn">
+                                <i class="bi bi-plus-lg me-1"></i> Create Task
+                            </button>
+                        </div>
+                        <div style="overflow-x: auto;">
+                            <table class="admin-table">
+                                <thead>
+                                    <tr>
+                                        <th>Title</th>
+                                        <th>Assigned Member</th>
+                                        <th>Committee</th>
+                                        <th>Due Date</th>
+                                        <th>Status</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="tasksTableBody">
+                                    <tr><td colspan="6" class="text-center text-muted py-4">Loading tasks...</td></tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                    <div id="tasksFeedback" class="feedback-panel feedback-panel-light mt-3 text-center"></div>
                 </div>
 
             </div>
@@ -472,6 +545,59 @@
                     </button>
                     <button type="button" class="btn btn-ieee btn-ieee-primary" id="appAcceptBtn" style="padding: 0.5rem 1.25rem; font-size: 0.82rem;">
                         <span class="btn-text">Accept & Register Member</span>
+                        <span class="btn-spinner"></span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Task Modal -->
+    <div class="modal fade modal-admin" id="taskModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="taskModalTitle">Create Task</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="taskForm" novalidate>
+                        <input type="hidden" id="taskId" />
+                        <div class="mb-3">
+                            <label class="form-label" for="taskTitle">Task Title</label>
+                            <input type="text" class="form-control" id="taskTitle" required maxlength="150" />
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label" for="taskDescription">Description</label>
+                            <textarea class="form-control" id="taskDescription" rows="4" required maxlength="1000"></textarea>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label" for="taskAssignedMemberId">Assign To Member</label>
+                            <select class="form-select" id="taskAssignedMemberId" required>
+                                <option value="">-- Choose Member --</option>
+                            </select>
+                        </div>
+                        <div class="row g-3 mb-3">
+                            <div class="col-md-6">
+                                <label class="form-label" for="taskDueDate">Due Date</label>
+                                <input type="date" class="form-control" id="taskDueDate" required />
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label" for="taskStatus">Status</label>
+                                <select class="form-select" id="taskStatus" required>
+                                    <option value="ToDo">To Do</option>
+                                    <option value="InProgress">In Progress</option>
+                                    <option value="Completed">Completed</option>
+                                </select>
+                            </div>
+                        </div>
+                    </form>
+                    <div id="taskFormFeedback" class="feedback-panel feedback-panel-light text-center"></div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-ieee btn-ieee-outline" data-bs-dismiss="modal" style="padding: 0.5rem 1.25rem; font-size: 0.82rem; color: var(--ieee-secondary); border-color: rgba(0,0,0,0.15);">Cancel</button>
+                    <button type="button" class="btn btn-ieee btn-ieee-primary" id="taskSaveBtn" style="padding: 0.5rem 1.5rem; font-size: 0.82rem;">
+                        <span class="btn-text">Save Task</span>
                         <span class="btn-spinner"></span>
                     </button>
                 </div>

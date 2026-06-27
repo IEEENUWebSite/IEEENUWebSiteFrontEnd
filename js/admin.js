@@ -12,7 +12,9 @@
     upload: `${API_BASE}/Upload`,
     members: `${API_BASE}/Members`,
     committees: `${API_BASE}/Committees`,
-    recruitment: `${API_BASE}/Recruitment`
+    recruitment: `${API_BASE}/Recruitment`,
+    attendance: `${API_BASE}/Attendance`,
+    tasks: `${API_BASE}/Tasks`
   };
 
   const ADMIN_ROLES = ['admin', 'board', 'media', 'moderator'];
@@ -45,6 +47,18 @@
     initBlogModal();
     initImageUploadPreviews();
 
+    if (role === 'admin' || role === 'board' || role === 'moderator') {
+      const navAttendance = document.getElementById('nav-attendance');
+      if (navAttendance) navAttendance.style.display = 'block';
+      const navTasks = document.getElementById('nav-tasks');
+      if (navTasks) navTasks.style.display = 'block';
+
+      loadEventsForAttendanceDropdown();
+      loadTasks();
+      initAttendanceDesk();
+      initTaskDesk();
+    }
+
     if (role === 'admin') {
       const navMembers = document.getElementById('nav-members');
       if (navMembers) navMembers.style.display = 'block';
@@ -74,7 +88,14 @@
   function initSidebar() {
     const navItems = document.querySelectorAll('.dash-nav-item[data-section]');
     const titleEl = document.getElementById('topbarTitle');
-    const titles = { events: 'Events Manager', blog: 'Blog Manager', members: 'Members Manager', applications: 'Applications Manager' };
+    const titles = {
+      events: 'Events Manager',
+      blog: 'Blog Manager',
+      members: 'Members Manager',
+      applications: 'Applications Manager',
+      attendance: 'Attendance Desk',
+      tasks: 'Task Manager'
+    };
     navItems.forEach(item => {
       item.addEventListener('click', (e) => {
         e.preventDefault();
@@ -857,5 +878,347 @@
     if (!btn) return;
     btn.classList.toggle('btn-loading', loading);
     btn.disabled = loading;
+  }
+
+  // ══════════════════════════════════════════
+  //  ATTENDANCE DESK
+  // ══════════════════════════════════════════
+
+  async function loadEventsForAttendanceDropdown() {
+    const select = document.getElementById('attendanceEventSelect');
+    if (!select) return;
+    try {
+      const res = await fetch(ENDPOINTS.events, { headers: authHeaders(true) });
+      if (res.status === 401) { logout(); return; }
+      if (!res.ok) throw new Error('Failed to load events.');
+      const events = await res.json();
+      
+      select.innerHTML = '<option value="">-- Choose Event --</option>';
+      events.forEach(e => {
+        const date = new Date(e.eventDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+        const opt = document.createElement('option');
+        opt.value = e.id;
+        opt.textContent = `${e.title} (${date})`;
+        select.appendChild(opt);
+      });
+    } catch (err) {
+      console.error(err);
+      showFeedback('attendanceFeedback', 'error', 'Error loading events dropdown list.');
+    }
+  }
+
+  function initAttendanceDesk() {
+    const select = document.getElementById('attendanceEventSelect');
+    const saveBtn = document.getElementById('saveAttendanceBtn');
+    
+    if (select) {
+      select.addEventListener('change', () => {
+        const val = select.value;
+        if (!val) {
+          document.getElementById('attendanceTableBody').innerHTML = '<tr><td colspan="4" class="text-center text-muted py-4">Please select an event from the dropdown above.</td></tr>';
+          document.getElementById('attendanceSaveContainer').style.setProperty('display', 'none', 'important');
+          return;
+        }
+        loadAttendanceForEvent(val);
+      });
+    }
+    
+    if (saveBtn) {
+      saveBtn.addEventListener('click', async () => {
+        const eventId = select.value;
+        if (!eventId) return;
+        setButtonLoading(saveBtn, true);
+        hideFeedback('attendanceFeedback');
+        try {
+          const rows = document.querySelectorAll('#attendanceTableBody tr');
+          const records = [];
+          rows.forEach(row => {
+            const chk = row.querySelector('.attendance-check');
+            if (chk) {
+              records.push({
+                memberId: parseInt(chk.dataset.memberId),
+                attended: chk.checked
+              });
+            }
+          });
+          
+          const res = await fetch(`${ENDPOINTS.attendance}/Event/${eventId}`, {
+            method: 'POST',
+            headers: authHeaders(true),
+            body: JSON.stringify({ records })
+          });
+          
+          if (res.status === 401) { logout(); return; }
+          if (!res.ok) {
+             const errData = await res.json().catch(() => ({}));
+             throw new Error(errData.message || 'Failed to save attendance.');
+          }
+          
+          showFeedback('attendanceFeedback', 'success', 'Attendance saved successfully!');
+        } catch (err) {
+          console.error(err);
+          showFeedback('attendanceFeedback', 'error', err.message || 'Error saving attendance.');
+        } finally {
+          setButtonLoading(saveBtn, false);
+        }
+      });
+    }
+  }
+
+  async function loadAttendanceForEvent(eventId) {
+    const tbody = document.getElementById('attendanceTableBody');
+    const saveContainer = document.getElementById('attendanceSaveContainer');
+    if (!tbody) return;
+    tbody.innerHTML = '<tr><td colspan="4" class="text-center text-muted py-4">Loading attendance records...</td></tr>';
+    saveContainer.style.setProperty('display', 'none', 'important');
+    
+    try {
+      const res = await fetch(`${ENDPOINTS.attendance}/Event/${eventId}`, { headers: authHeaders(true) });
+      if (res.status === 401) { logout(); return; }
+      if (!res.ok) throw new Error('Failed to load attendance.');
+      const records = await res.json();
+      
+      if (records.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="4" class="text-center text-muted py-4">No active members found to log attendance.</td></tr>';
+        return;
+      }
+      
+      tbody.innerHTML = '';
+      records.forEach(r => {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td>
+            <div class="fw-semibold">${escapeHTML(r.fullName)}</div>
+          </td>
+          <td>
+            <div style="font-size: 0.85rem;">${escapeHTML(r.email)}</div>
+            <div class="text-muted" style="font-size: 0.75rem;">${escapeHTML(r.phone)}</div>
+          </td>
+          <td>
+            <div style="font-size: 0.85rem;"><code class="text-dark">${escapeHTML(r.nuid)}</code></div>
+            <div class="text-muted" style="font-size: 0.75rem;">${escapeHTML(r.committeeName)}</div>
+          </td>
+          <td style="text-align: center;">
+            <input type="checkbox" class="form-check-input attendance-check" data-member-id="${r.memberId}" ${r.attended ? 'checked' : ''} style="transform: scale(1.2);" />
+          </td>
+        `;
+        tbody.appendChild(tr);
+      });
+      
+      saveContainer.style.removeProperty('display');
+    } catch (err) {
+      console.error(err);
+      tbody.innerHTML = `<tr><td colspan="4" class="text-center text-danger py-4">${escapeHTML(err.message || 'Error loading attendance.')}</td></tr>`;
+    }
+  }
+
+  // ══════════════════════════════════════════
+  //  TASK BOARD MANAGER
+  // ══════════════════════════════════════════
+
+  let allTasks = [];
+
+  async function loadTasks() {
+    const tbody = document.getElementById('tasksTableBody');
+    if (!tbody) return;
+    try {
+      const res = await fetch(ENDPOINTS.tasks, { headers: authHeaders(true) });
+      if (res.status === 401) { logout(); return; }
+      if (!res.ok) throw new Error('Failed to load tasks.');
+      allTasks = await res.json();
+      
+      if (allTasks.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="6" class="text-center text-muted py-4">No tasks found.</td></tr>';
+        return;
+      }
+      
+      tbody.innerHTML = '';
+      allTasks.forEach(t => {
+        const tr = document.createElement('tr');
+        const date = new Date(t.dueDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+        
+        let badgeClass = 'bg-secondary';
+        let statusText = t.status;
+        if (t.status === 'ToDo') { badgeClass = 'bg-danger'; statusText = 'To Do'; }
+        else if (t.status === 'InProgress') { badgeClass = 'bg-warning text-dark'; statusText = 'In Progress'; }
+        else if (t.status === 'Completed') { badgeClass = 'bg-success'; statusText = 'Completed'; }
+        
+        tr.innerHTML = `
+          <td>
+            <div class="fw-semibold">${escapeHTML(t.title)}</div>
+            <div class="text-muted text-truncate" style="max-width: 250px; font-size: 0.75rem;">${escapeHTML(t.description)}</div>
+          </td>
+          <td>
+            <div class="fw-medium" style="font-size: 0.85rem;">${escapeHTML(t.assignedMemberName)}</div>
+          </td>
+          <td>
+            <span class="badge bg-light text-dark border">${escapeHTML(t.assignedMemberCommittee)}</span>
+          </td>
+          <td>
+            <div style="font-size: 0.85rem;">${date}</div>
+          </td>
+          <td>
+            <span class="badge ${badgeClass}">${statusText}</span>
+          </td>
+          <td>
+            <div class="d-flex gap-2">
+              <button class="btn btn-sm btn-ieee btn-ieee-outline edit-task-btn" data-id="${t.id}" style="padding: 0.25rem 0.5rem; font-size: 0.75rem;"><i class="bi bi-pencil"></i></button>
+              <button class="btn btn-sm btn-ieee edit-task-btn" data-id="${t.id}" data-action="delete" style="padding: 0.25rem 0.5rem; font-size: 0.75rem; background: #dc3545; color: #fff;"><i class="bi bi-trash"></i></button>
+            </div>
+          </td>
+        `;
+        
+        tr.querySelector('.btn-ieee-outline').addEventListener('click', () => editTask(t.id));
+        tr.querySelector('[data-action="delete"]').addEventListener('click', () => confirmDeleteTask(t.id));
+        
+        tbody.appendChild(tr);
+      });
+    } catch (err) {
+      console.error(err);
+      tbody.innerHTML = `<tr><td colspan="6" class="text-center text-danger py-4">Error: ${escapeHTML(err.message)}</td></tr>`;
+    }
+  }
+
+  function initTaskDesk() {
+    const addBtn = document.getElementById('addTaskBtn');
+    const saveBtn = document.getElementById('taskSaveBtn');
+    
+    if (addBtn) {
+      addBtn.addEventListener('click', () => {
+        document.getElementById('taskModalTitle').textContent = 'Create Task';
+        document.getElementById('taskForm').reset();
+        document.getElementById('taskId').value = '';
+        hideFeedback('taskFormFeedback');
+        loadMembersForTaskDropdown();
+        const modal = new bootstrap.Modal(document.getElementById('taskModal'));
+        modal.show();
+      });
+    }
+    
+    if (saveBtn) {
+      saveBtn.addEventListener('click', async () => {
+        const form = document.getElementById('taskForm');
+        if (!form.checkValidity()) { form.classList.add('was-validated'); return; }
+        
+        setButtonLoading(saveBtn, true);
+        hideFeedback('taskFormFeedback');
+        
+        const taskId = document.getElementById('taskId').value;
+        const isEdit = !!taskId;
+        
+        const payload = {
+          title: document.getElementById('taskTitle').value,
+          description: document.getElementById('taskDescription').value,
+          assignedMemberId: parseInt(document.getElementById('taskAssignedMemberId').value),
+          dueDate: new Date(document.getElementById('taskDueDate').value).toISOString(),
+          status: document.getElementById('taskStatus').value
+        };
+        
+        try {
+          const url = isEdit ? `${ENDPOINTS.tasks}/${taskId}` : ENDPOINTS.tasks;
+          const method = isEdit ? 'PUT' : 'POST';
+          
+          const res = await fetch(url, {
+            method: method,
+            headers: authHeaders(true),
+            body: JSON.stringify(payload)
+          });
+          
+          if (res.status === 401) { logout(); return; }
+          if (!res.ok) {
+            const errData = await res.json().catch(() => ({}));
+            throw new Error(errData.message || 'Failed to save task.');
+          }
+          
+          bootstrap.Modal.getInstance(document.getElementById('taskModal')).hide();
+          await loadTasks();
+          showFeedback('tasksFeedback', 'success', `Task ${isEdit ? 'updated' : 'created'} successfully!`);
+        } catch (err) {
+          console.error(err);
+          showFeedback('taskFormFeedback', 'error', err.message || 'Error saving task.');
+        } finally {
+          setButtonLoading(saveBtn, false);
+        }
+      });
+    }
+  }
+
+  async function loadMembersForTaskDropdown(selectedId) {
+    const select = document.getElementById('taskAssignedMemberId');
+    if (!select) return;
+    select.innerHTML = '<option value="">Loading members...</option>';
+    try {
+      const res = await fetch(`${ENDPOINTS.tasks}/Members`, { headers: authHeaders(true) });
+      if (res.status === 401) { logout(); return; }
+      if (!res.ok) throw new Error('Failed to load members.');
+      const members = await res.json();
+      
+      select.innerHTML = '<option value="">-- Choose Member --</option>';
+      members.forEach(m => {
+        const opt = document.createElement('option');
+        opt.value = m.id;
+        opt.textContent = `${m.fullName} (${m.committeeName})`;
+        if (selectedId && m.id === selectedId) opt.selected = true;
+        select.appendChild(opt);
+      });
+    } catch (err) {
+      console.error(err);
+      select.innerHTML = '<option value="">Error loading members</option>';
+    }
+  }
+
+  async function editTask(taskId) {
+    const task = allTasks.find(t => t.id === taskId);
+    if (!task) return;
+    
+    document.getElementById('taskModalTitle').textContent = 'Edit Task';
+    document.getElementById('taskId').value = task.id;
+    document.getElementById('taskTitle').value = task.title;
+    document.getElementById('taskDescription').value = task.description;
+    document.getElementById('taskDueDate').value = task.dueDate.split('T')[0];
+    document.getElementById('taskStatus').value = task.status;
+    hideFeedback('taskFormFeedback');
+    
+    await loadMembersForTaskDropdown(task.assignedMemberId);
+    
+    const modal = new bootstrap.Modal(document.getElementById('taskModal'));
+    modal.show();
+  }
+
+  function confirmDeleteTask(taskId) {
+    const confirmBtn = document.getElementById('deleteConfirmBtn');
+    if (!confirmBtn) return;
+    
+    document.getElementById('deleteMessage').textContent = 'Are you sure you want to delete this task? This action cannot be undone.';
+    
+    const newConfirmBtn = confirmBtn.cloneNode(true);
+    confirmBtn.parentNode.replaceChild(newConfirmBtn, confirmBtn);
+    
+    const modal = new bootstrap.Modal(document.getElementById('deleteModal'));
+    modal.show();
+    
+    newConfirmBtn.addEventListener('click', async () => {
+      setButtonLoading(newConfirmBtn, true);
+      try {
+        const res = await fetch(`${ENDPOINTS.tasks}/${taskId}`, {
+          method: 'DELETE',
+          headers: authHeaders()
+        });
+        if (res.status === 401) { logout(); return; }
+        if (!res.ok) {
+          const errData = await res.json().catch(() => ({}));
+          throw new Error(errData.message || 'Failed to delete task.');
+        }
+        
+        bootstrap.Modal.getInstance(document.getElementById('deleteModal')).hide();
+        await loadTasks();
+        showFeedback('tasksFeedback', 'success', 'Task deleted successfully.');
+      } catch (err) {
+        console.error(err);
+        alert(err.message || 'Error deleting task.');
+      } finally {
+        setButtonLoading(newConfirmBtn, false);
+      }
+    });
   }
 })();
