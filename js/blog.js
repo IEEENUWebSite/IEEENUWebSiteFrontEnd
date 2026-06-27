@@ -9,6 +9,7 @@
   const ENDPOINTS = {
     blog: `${API_BASE}/Blog`,
     committees: `${API_BASE}/Committees`,
+    newsletter: `${API_BASE}/Newsletter/Subscribe`
   };
 
   let allPosts = [];
@@ -158,9 +159,12 @@
     const feedback = document.getElementById('newsletterFeedback');
     if (!form) return;
 
-    form.addEventListener('submit', (e) => {
+    form.addEventListener('submit', async (e) => {
       e.preventDefault();
-      const email = document.getElementById('newsletterEmail').value;
+      
+      hideFeedback(feedback);
+
+      const email = document.getElementById('newsletterEmail').value.trim();
       const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
       if (!emailRegex.test(email)) {
@@ -171,11 +175,27 @@
       const btn = form.querySelector('button[type="submit"]');
       setButtonLoading(btn, true);
 
-      setTimeout(() => {
-        showFeedback(feedback, 'success', 'You have been subscribed. Welcome aboard.');
-        form.reset();
+      try {
+        const res = await fetch(ENDPOINTS.newsletter, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+          body: JSON.stringify({ email })
+        });
+
+        const result = await res.json().catch(() => ({}));
+
+        if (res.ok) {
+          showFeedback(feedback, 'success', 'You have been subscribed. Welcome aboard.');
+          form.reset();
+        } else {
+          showFeedback(feedback, 'error', result.message || 'Failed to subscribe. Please try again.');
+        }
+      } catch (err) {
+        console.error('Newsletter subscribe error:', err);
+        showFeedback(feedback, 'error', 'A network error occurred. Please check your connection and try again.');
+      } finally {
         setButtonLoading(btn, false);
-      }, 600);
+      }
     });
   }
 

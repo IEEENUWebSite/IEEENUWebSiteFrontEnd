@@ -11,6 +11,8 @@
   const ENDPOINTS = {
     committees: `${API_BASE}/Committees`,
     apply: `${API_BASE}/Recruitment/Apply`,
+    events: `${API_BASE}/Events`,
+    contact: `${API_BASE}/Contact`,
   };
 
   // Committee name → Bootstrap Icon mapping
@@ -130,6 +132,82 @@
     }
   }
 
+  // ── Load Upcoming Events ──
+  async function loadUpcomingEvents() {
+    const container = document.getElementById('events-container');
+    if (!container) return;
+
+    try {
+      const res = await fetch(ENDPOINTS.events);
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const events = await res.json();
+
+      const now = new Date();
+      const upcoming = events
+        .filter(e => new Date(e.eventDate) > now)
+        .sort((a, b) => new Date(a.eventDate) - new Date(b.eventDate))
+        .slice(0, 3);
+
+      if (upcoming.length === 0) {
+        container.innerHTML = `
+          <div class="col-lg-8 text-center text-muted reveal">
+            <p>No upcoming events listed at the moment. Stay tuned for announcements.</p>
+          </div>`;
+        initScrollAnimations();
+        return;
+      }
+
+      container.innerHTML = '';
+      upcoming.forEach((event, idx) => {
+        const formattedDate = new Date(event.eventDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+        const delay = idx * 60;
+        
+        let excerpt = event.description || '';
+        if (excerpt.length > 120) {
+          excerpt = excerpt.substring(0, 117) + '...';
+        }
+
+        const col = document.createElement('div');
+        col.className = 'col-lg-4 col-md-6 mb-4';
+        col.innerHTML = `
+          <div class="event-hub-card reveal" style="transition-delay: ${delay}ms">
+            <div class="event-image">
+              ${event.imageUrl
+                ? `<img src="${escapeHTML(event.imageUrl)}" alt="${escapeHTML(event.title)}" />`
+                : `<i class="bi bi-calendar-event event-icon-placeholder"></i>`
+              }
+              <span class="event-date-badge">${formattedDate}</span>
+            </div>
+            <div class="event-body">
+              <div class="d-flex align-items-center gap-2 mb-2">
+                <span class="event-status-badge upcoming">Upcoming</span>
+              </div>
+              <h3>${escapeHTML(event.title)}</h3>
+              <div class="event-meta">
+                <i class="bi bi-geo-alt"></i>${escapeHTML(event.location)}
+              </div>
+              <p>${escapeHTML(excerpt)}</p>
+            </div>
+            <div class="event-footer">
+               <a href="events.html" class="btn btn-ieee btn-ieee-primary w-100 text-center" style="padding: 0.6rem; font-size: 0.82rem; text-decoration: none; display: block; border-radius: 6px;">
+                    <span class="btn-text">Register / Details</span>
+               </a>
+            </div>
+          </div>`;
+        container.appendChild(col);
+      });
+
+      initScrollAnimations();
+    } catch (err) {
+      console.error('Upcoming events fetch error:', err);
+      container.innerHTML = `
+        <div class="col-lg-8 text-center text-muted reveal">
+          <p>Unable to load upcoming events. Please ensure the backend is running.</p>
+        </div>`;
+      initScrollAnimations();
+    }
+  }
+
   // ── 3. Recruitment Form ──
   function initRecruitmentForm() {
     const form = document.getElementById('recruitmentForm');
@@ -223,16 +301,60 @@
     const feedback = document.getElementById('contactFeedback');
     if (!form) return;
 
-    form.addEventListener('submit', (e) => {
+    form.addEventListener('submit', async (e) => {
       e.preventDefault();
+      
+      hideFeedback(feedback);
+
+      const payload = {
+        fullName: val('contactName').trim(),
+        email: val('contactEmail').trim(),
+        subject: val('contactSubject').trim(),
+        message: val('contactMessage').trim()
+      };
+
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+      if (!payload.fullName) {
+        showFeedback(feedback, 'error', 'Full name is required.');
+        return;
+      }
+      if (!emailRegex.test(payload.email)) {
+        showFeedback(feedback, 'error', 'Please enter a valid email address.');
+        return;
+      }
+      if (!payload.subject) {
+        showFeedback(feedback, 'error', 'Subject is required.');
+        return;
+      }
+      if (!payload.message) {
+        showFeedback(feedback, 'error', 'Message cannot be empty.');
+        return;
+      }
+
       setButtonLoading(btn, true);
 
-      // Simulate submission delay
-      setTimeout(() => {
-        showFeedback(feedback, 'success', 'Thank you for your message. We will get back to you shortly.');
-        form.reset();
+      try {
+        const res = await fetch(ENDPOINTS.contact, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+
+        const result = await res.json().catch(() => ({}));
+
+        if (res.ok) {
+          showFeedback(feedback, 'success', 'Thank you for your message. We will get back to you shortly.');
+          form.reset();
+        } else {
+          showFeedback(feedback, 'error', result.message || 'Failed to send message. Please try again.');
+        }
+      } catch (err) {
+        console.error('Contact submit error:', err);
+        showFeedback(feedback, 'error', 'A network error occurred. Please check your connection and try again.');
+      } finally {
         setButtonLoading(btn, false);
-      }, 800);
+      }
     });
   }
 
@@ -316,6 +438,7 @@
   window.addEventListener('DOMContentLoaded', () => {
     initNavbar();
     loadCommittees();
+    loadUpcomingEvents();
     initRecruitmentForm();
     initContactForm();
     initScrollAnimations();
