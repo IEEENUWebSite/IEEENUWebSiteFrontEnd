@@ -4,11 +4,12 @@
 
 /* --- 1. Design Tokens (CSS Custom Properties) --- */
 :root {
-  --ieee-primary: #012B5B;
-  --ieee-primary-hover: #013b7a;
-  --ieee-primary-rgb: 1, 43, 91;
-  --ieee-dark: #212529;
-  --ieee-dark-rgb: 33, 37, 41;
+  --ieee-primary: #00b4d8;
+  --ieee-primary-hover: #0077b6;
+  --ieee-primary-rgb: 0, 180, 216;
+  --ieee-brand-blue: #012B5B;
+  --ieee-dark: #012B5B;
+  --ieee-dark-rgb: 1, 43, 91;
   --ieee-secondary: #6c757d;
   --ieee-light: #f8f9fa;
   --ieee-white: #ffffff;
@@ -155,7 +156,7 @@ a:hover { color: var(--ieee-primary-hover); }
   box-shadow: 0 0 0 0.2rem rgba(var(--ieee-primary-rgb), 0.25) !important;
 }
 .navbar-toggler-icon {
-  background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 30 30'%3e%3cpath stroke='%23012B5B' stroke-width='2.5' stroke-linecap='round' stroke-miterlimit='10' d='M4 7h22M4 15h22M4 23h22'/%3e%3c/svg%3e") !important;
+  background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 30 30'%3e%3cpath stroke='%2300b4d8' stroke-width='2.5' stroke-linecap='round' stroke-miterlimit='10' d='M4 7h22M4 15h22M4 23h22'/%3e%3c/svg%3e") !important;
 }
 @media (max-width: 991.98px) {
   .navbar-collapse {
