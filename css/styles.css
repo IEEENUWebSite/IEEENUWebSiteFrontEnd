@@ -2169,3 +2169,45 @@ a:hover { color: var(--ieee-primary-hover); }
   flex-shrink: 0;
   border: 1px solid rgba(var(--ieee-primary-rgb), 0.25);
 }
+
+/* --- 18. About the Developer Section --- */
+.developer-card {
+  background: var(--ieee-white);
+  border-radius: var(--ieee-radius-lg);
+  box-shadow: var(--ieee-shadow-md);
+  padding: 3rem;
+  border: 1px solid rgba(0,0,0,0.05);
+  transition: transform var(--ieee-transition), box-shadow var(--ieee-transition);
+}
+.developer-card:hover {
+  transform: translateY(-5px);
+  box-shadow: var(--ieee-shadow-lg);
+}
+.developer-avatar-container {
+  position: relative;
+  display: inline-block;
+  border-radius: 50%;
+  padding: 5px;
+  background: linear-gradient(135deg, var(--ieee-primary) 0%, var(--ieee-primary-hover) 100%);
+  box-shadow: 0 4px 15px rgba(0, 180, 216, 0.2);
+}
+.developer-avatar {
+  width: 150px;
+  height: 150px;
+  object-fit: cover;
+  border-radius: 50%;
+  border: 4px solid var(--ieee-white);
+  display: block;
+}
+.developer-name {
+  font-family: var(--ieee-font-heading);
+  font-size: 1.75rem;
+  font-weight: 700;
+  color: var(--ieee-brand-blue);
+  margin-bottom: 0.75rem;
+}
+.developer-headline {
+  font-size: 1rem;
+  line-height: 1.6;
+  color: var(--ieee-secondary);
+}
