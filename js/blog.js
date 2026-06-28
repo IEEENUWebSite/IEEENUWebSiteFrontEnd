@@ -237,6 +237,11 @@ handles: blog fetching, search filter, category filter, newsletter*/
     el.className = `feedback-panel text-center ${type} show`;
     el.textContent = msg;
   }
+  function hideFeedback(el) {
+    if (!el) return;
+    el.className = 'feedback-panel text-center';
+    el.textContent = '';
+  }
   function setButtonLoading(btn, loading) {
     if (!btn) return;
     btn.classList.toggle('btn-loading', loading);
