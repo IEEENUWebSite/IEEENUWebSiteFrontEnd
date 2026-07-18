@@ -38,6 +38,16 @@ export default function Admin() {
 
   const [taskModal, setTaskModal] = useState({ show: false, id: null, title: '', description: '', assignedMemberId: '', dueDate: '', status: 'ToDo' });
   const [taskSaveLoading, setTaskSaveLoading] = useState(false);
+  const [dataLoading, setDataLoading] = useState(true);
+  const [toasts, setToasts] = useState([]);
+
+  const showToast = (message, type = 'info') => {
+    const id = Date.now();
+    setToasts(prev => [...prev, { id, message, type }]);
+    setTimeout(() => {
+      setToasts(prev => prev.filter(t => t.id !== id));
+    }, 4000);
+  };
 
   const [feedback, setFeedback] = useState({ show: false, type: '', message: '' });
 
@@ -56,6 +66,7 @@ export default function Admin() {
   }, [navigate]);
 
   useEffect(() => {
+    setDataLoading(true);
     if (activeSection === 'events') {
       loadEvents();
     } else if (activeSection === 'blog') {
@@ -79,6 +90,8 @@ export default function Admin() {
       setEvents(data);
     } catch (err) {
       console.error(err);
+    } finally {
+      setDataLoading(false);
     }
   };
 
@@ -88,6 +101,8 @@ export default function Admin() {
       setBlogPosts(data);
     } catch (err) {
       console.error(err);
+    } finally {
+      setDataLoading(false);
     }
   };
 
@@ -97,6 +112,8 @@ export default function Admin() {
       setMembers(data);
     } catch (err) {
       console.error(err);
+    } finally {
+      setDataLoading(false);
     }
   };
 
@@ -115,6 +132,8 @@ export default function Admin() {
       setApplications(data);
     } catch (err) {
       console.error(err);
+    } finally {
+      setDataLoading(false);
     }
   };
 
@@ -124,6 +143,8 @@ export default function Admin() {
       setAdminTasks(data);
     } catch (err) {
       console.error(err);
+    } finally {
+      setDataLoading(false);
     }
   };
 
@@ -180,25 +201,38 @@ export default function Admin() {
   const handleExecuteDelete = async () => {
     setDeleteLoading(true);
     setFeedback({ show: false, type: '', message: '' });
+    const type = deleteModal.type;
+    const id = deleteModal.id;
+    const originalEvents = [...events];
+    const originalBlogPosts = [...blogPosts];
+    const originalMembers = [...members];
+    const originalAdminTasks = [...adminTasks];
+
+    if (type === 'event') setEvents(prev => prev.filter(e => e.id !== id));
+    else if (type === 'blog') setBlogPosts(prev => prev.filter(p => p.id !== id));
+    else if (type === 'member') setMembers(prev => prev.filter(m => m.id !== id));
+    else if (type === 'task') setAdminTasks(prev => prev.filter(t => t.id !== id));
+
+    setDeleteModal({ show: false, type: '', id: null, title: '' });
+
     try {
-      if (deleteModal.type === 'event') {
-        await api.deleteEvent(deleteModal.id);
-        await loadEvents();
-      } else if (deleteModal.type === 'blog') {
-        await api.deleteBlogPost(deleteModal.id);
-        await loadBlogPosts();
-      } else if (deleteModal.type === 'member') {
-        await api.deleteMember(deleteModal.id);
-        await loadMembers();
-      } else if (deleteModal.type === 'task') {
-        await api.deleteAdminTask(deleteModal.id);
-        await loadAdminTasks();
+      if (type === 'event') {
+        await api.deleteEvent(id);
+      } else if (type === 'blog') {
+        await api.deleteBlogPost(id);
+      } else if (type === 'member') {
+        await api.deleteMember(id);
+      } else if (type === 'task') {
+        await api.deleteAdminTask(id);
       }
-      setDeleteModal({ show: false, type: '', id: null, title: '' });
-      setFeedback({ show: true, type: 'success', message: 'Item deleted successfully!' });
+      showToast('Item deleted successfully.', 'success');
     } catch (err) {
       console.error(err);
-      setFeedback({ show: true, type: 'error', message: err.message || 'Deletion failed.' });
+      if (type === 'event') setEvents(originalEvents);
+      else if (type === 'blog') setBlogPosts(originalBlogPosts);
+      else if (type === 'member') setMembers(originalMembers);
+      else if (type === 'task') setAdminTasks(originalAdminTasks);
+      showToast(err.message || 'Deletion failed. Reverting change.', 'error');
     } finally {
       setDeleteLoading(false);
     }
@@ -206,6 +240,8 @@ export default function Admin() {
 
   const handleTogglePublish = async (post) => {
     setFeedback({ show: false, type: '', message: '' });
+    const originalBlogPosts = [...blogPosts];
+    setBlogPosts(prev => prev.map(p => p.id === post.id ? { ...p, isPublished: !post.isPublished } : p));
     try {
       const payload = {
         title: post.title,
@@ -214,23 +250,25 @@ export default function Admin() {
         imageUrl: post.imageUrl || null
       };
       await api.updateBlogPost(post.id, payload);
-      await loadBlogPosts();
-      setFeedback({ show: true, type: 'success', message: `Post ${post.isPublished ? 'unpublished' : 'published'} successfully.` });
+      showToast(`Post ${post.isPublished ? 'unpublished' : 'published'} successfully.`, 'success');
     } catch (err) {
       console.error(err);
-      setFeedback({ show: true, type: 'error', message: 'Failed to update publication status.' });
+      setBlogPosts(originalBlogPosts);
+      showToast('Failed to update publication status. Reverting change.', 'error');
     }
   };
 
   const handleToggleMemberStatus = async (id, currentStatus) => {
     setFeedback({ show: false, type: '', message: '' });
+    const originalMembers = [...members];
+    setMembers(prev => prev.map(m => m.id === id ? { ...m, isActive: !currentStatus } : m));
     try {
       await api.toggleMemberStatus(id, !currentStatus);
-      await loadMembers();
-      setFeedback({ show: true, type: 'success', message: 'Member account status updated successfully.' });
+      showToast('Member status updated successfully.', 'success');
     } catch (err) {
       console.error(err);
-      setFeedback({ show: true, type: 'error', message: err.message || 'Failed to update member status.' });
+      setMembers(originalMembers);
+      showToast(err.message || 'Failed to update member status. Reverting change.', 'error');
     }
   };
 
@@ -414,19 +452,22 @@ export default function Admin() {
   const handleAppDecision = async (id, accept) => {
     setAppActionLoading(true);
     setFeedback({ show: false, type: '', message: '' });
+    const originalApplications = [...applications];
+    const targetStatus = accept ? 'Approved' : 'Rejected';
+    setApplications(prev => prev.map(a => a.id === id ? { ...a, status: targetStatus } : a));
+    setAppModal({ show: false, app: null });
     try {
       if (accept) {
         await api.acceptApplication(id);
-        setFeedback({ show: true, type: 'success', message: 'Application approved! Registered as a branch member.' });
+        showToast('Application approved! Registered as a branch member.', 'success');
       } else {
         await api.rejectApplication(id);
-        setFeedback({ show: true, type: 'success', message: 'Application rejected.' });
+        showToast('Application rejected.', 'success');
       }
-      setAppModal({ show: false, app: null });
-      await loadApplications();
     } catch (err) {
       console.error(err);
-      setFeedback({ show: true, type: 'error', message: err.message || 'Application update failed.' });
+      setApplications(originalApplications);
+      showToast(err.message || 'Application update failed. Reverting change.', 'error');
     } finally {
       setAppActionLoading(false);
     }
@@ -608,7 +649,24 @@ export default function Admin() {
                     </tr>
                   </thead>
                   <tbody>
-                    {events.length > 0 ? (
+                    {dataLoading ? (
+                      [1, 2, 3].map(n => (
+                        <tr key={n}>
+                          <td><div className="skeleton" style={{ width: '40px', height: '40px', borderRadius: '4px' }}></div></td>
+                          <td><div className="skeleton skeleton-text medium mb-0"></div></td>
+                          <td><div className="skeleton skeleton-text short mb-0"></div></td>
+                          <td><div className="skeleton skeleton-text short mb-0"></div></td>
+                          <td><div className="skeleton skeleton-text short mb-0"></div></td>
+                          <td><div className="skeleton skeleton-text short mb-0"></div></td>
+                          <td>
+                            <div className="d-flex gap-1">
+                              <div className="skeleton" style={{ width: '28px', height: '28px', borderRadius: '4px' }}></div>
+                              <div className="skeleton" style={{ width: '28px', height: '28px', borderRadius: '4px' }}></div>
+                            </div>
+                          </td>
+                        </tr>
+                      ))
+                    ) : events.length > 0 ? (
                       events.map(ev => {
                         const dateStr = new Date(ev.eventDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
                         return (
@@ -666,7 +724,24 @@ export default function Admin() {
                     </tr>
                   </thead>
                   <tbody>
-                    {blogPosts.length > 0 ? (
+                    {dataLoading ? (
+                      [1, 2, 3].map(n => (
+                        <tr key={n}>
+                          <td><div className="skeleton" style={{ width: '40px', height: '40px', borderRadius: '4px' }}></div></td>
+                          <td><div className="skeleton skeleton-text medium mb-0"></div></td>
+                          <td><div className="skeleton skeleton-text short mb-0"></div></td>
+                          <td><div className="skeleton skeleton-text short mb-0"></div></td>
+                          <td><div className="skeleton skeleton-text short mb-0"></div></td>
+                          <td>
+                            <div className="d-flex gap-1">
+                              <div className="skeleton" style={{ width: '28px', height: '28px', borderRadius: '4px' }}></div>
+                              <div className="skeleton" style={{ width: '28px', height: '28px', borderRadius: '4px' }}></div>
+                              <div className="skeleton" style={{ width: '28px', height: '28px', borderRadius: '4px' }}></div>
+                            </div>
+                          </td>
+                        </tr>
+                      ))
+                    ) : blogPosts.length > 0 ? (
                       blogPosts.map(p => {
                         const dateStr = new Date(p.publishedDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
                         return (
@@ -725,7 +800,37 @@ export default function Admin() {
                     </tr>
                   </thead>
                   <tbody>
-                    {members.length > 0 ? (
+                    {dataLoading ? (
+                      [1, 2, 3].map(n => (
+                        <tr key={n}>
+                          <td>
+                            <div className="d-flex align-items-center gap-2">
+                              <div className="skeleton skeleton-circle" style={{ width: '32px', height: '32px' }}></div>
+                              <div className="skeleton skeleton-text short mb-0" style={{ width: '120px' }}></div>
+                            </div>
+                          </td>
+                          <td>
+                            <div className="skeleton skeleton-text medium mb-1"></div>
+                            <div className="skeleton skeleton-text short mb-0"></div>
+                          </td>
+                          <td><div className="skeleton skeleton-text short mb-0" style={{ width: '60px' }}></div></td>
+                          <td>
+                            <div className="skeleton skeleton-text medium mb-1"></div>
+                            <div className="skeleton skeleton-text short mb-0"></div>
+                          </td>
+                          <td><div className="skeleton skeleton-text short mb-0" style={{ width: '85px', height: '1.25rem' }}></div></td>
+                          <td><div className="skeleton skeleton-text short mb-0" style={{ width: '70px', height: '1.25rem' }}></div></td>
+                          <td><div className="skeleton skeleton-text short mb-0" style={{ width: '60px', height: '1.25rem' }}></div></td>
+                          <td>
+                            <div className="d-flex gap-1">
+                              <div className="skeleton" style={{ width: '24px', height: '24px', borderRadius: '4px' }}></div>
+                              <div className="skeleton" style={{ width: '24px', height: '24px', borderRadius: '4px' }}></div>
+                              <div className="skeleton" style={{ width: '24px', height: '24px', borderRadius: '4px' }}></div>
+                            </div>
+                          </td>
+                        </tr>
+                      ))
+                    ) : members.length > 0 ? (
                       members.map(m => {
                         const isSelf = member.id === m.id;
                         return (
@@ -801,7 +906,23 @@ export default function Admin() {
                     </tr>
                   </thead>
                   <tbody>
-                    {applications.length > 0 ? (
+                    {dataLoading ? (
+                      [1, 2, 3].map(n => (
+                        <tr key={n}>
+                          <td><div className="skeleton skeleton-text short mb-0"></div></td>
+                          <td><div className="skeleton skeleton-text medium mb-0" style={{ width: '120px' }}></div></td>
+                          <td>
+                            <div className="skeleton skeleton-text medium mb-1"></div>
+                            <div className="skeleton skeleton-text short mb-0"></div>
+                          </td>
+                          <td><div className="skeleton skeleton-text short mb-0" style={{ width: '60px' }}></div></td>
+                          <td><div className="skeleton skeleton-text short mb-0" style={{ width: '80px', height: '1.25rem' }}></div></td>
+                          <td><div className="skeleton skeleton-text short mb-0" style={{ width: '80px', height: '1.25rem' }}></div></td>
+                          <td><div className="skeleton skeleton-text short mb-0" style={{ width: '70px', height: '1.25rem' }}></div></td>
+                          <td><div className="skeleton skeleton-button" style={{ width: '70px', height: '1.5rem' }}></div></td>
+                        </tr>
+                      ))
+                    ) : applications.length > 0 ? (
                       applications.map(a => {
                         const dateStr = new Date(a.appliedDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
                         let badgeClass = 'bg-warning-subtle text-warning border border-warning-subtle';
@@ -926,7 +1047,26 @@ export default function Admin() {
                     </tr>
                   </thead>
                   <tbody>
-                    {adminTasks.length > 0 ? (
+                    {dataLoading ? (
+                      [1, 2, 3].map(n => (
+                        <tr key={n}>
+                          <td>
+                            <div className="skeleton skeleton-text medium mb-1" style={{ height: '1rem' }}></div>
+                            <div className="skeleton skeleton-text short mb-0"></div>
+                          </td>
+                          <td><div className="skeleton skeleton-text short mb-0" style={{ width: '100px' }}></div></td>
+                          <td><div className="skeleton skeleton-text short mb-0" style={{ width: '80px', height: '1.25rem' }}></div></td>
+                          <td><div className="skeleton skeleton-text short mb-0" style={{ width: '80px' }}></div></td>
+                          <td><div className="skeleton skeleton-text short mb-0" style={{ width: '80px', height: '1.25rem' }}></div></td>
+                          <td>
+                            <div className="d-flex gap-1">
+                              <div className="skeleton" style={{ width: '28px', height: '28px', borderRadius: '4px' }}></div>
+                              <div className="skeleton" style={{ width: '28px', height: '28px', borderRadius: '4px' }}></div>
+                            </div>
+                          </td>
+                        </tr>
+                      ))
+                    ) : adminTasks.length > 0 ? (
                       adminTasks.map(t => {
                         const dateStr = new Date(t.dueDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
                         let badgeClass = 'bg-secondary';
@@ -1538,6 +1678,14 @@ export default function Admin() {
           </div>
         </div>
       )}
+      <div className="toast-container">
+        {toasts.map(t => (
+          <div key={t.id} className={`toast-alert ${t.type}`}>
+            <i className={`bi ${t.type === 'success' ? 'bi-check-circle-fill text-success' : t.type === 'error' ? 'bi-exclamation-triangle-fill text-danger' : 'bi-info-circle-fill text-primary'}`}></i>
+            <span>{t.message}</span>
+          </div>
+        ))}
+      </div>
     </div>
   );
 }

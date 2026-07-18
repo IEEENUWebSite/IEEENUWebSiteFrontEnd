@@ -2,6 +2,7 @@ import React from 'react';
 import { HashRouter as Router, Routes, Route, useLocation } from 'react-router-dom';
 import Navbar from './components/Navbar';
 import Footer from './components/Footer';
+import LoadingBar from './components/LoadingBar';
 import Home from './pages/Home';
 import Events from './pages/Events';
 import Blog from './pages/Blog';
@@ -18,12 +19,14 @@ function MainLayout({ children }) {
 
   return (
     <>
+      <LoadingBar />
       {!hideNavFooter && <Navbar />}
       {children}
       {!hideNavFooter && <Footer />}
     </>
   );
 }
+
 
 export default function App() {
   return (

@@ -48,8 +48,20 @@ export default function Blog() {
               <div className="row">
                 {loading ? (
                   <>
-                    <div className="col-md-6 mb-4"><div className="skeleton skeleton-card" style={{ height: '360px' }}></div></div>
-                    <div className="col-md-6 mb-4"><div className="skeleton skeleton-card" style={{ height: '360px' }}></div></div>
+                    {[1, 2].map(n => (
+                      <div key={n} className="col-md-6 mb-4">
+                        <div className="blog-card">
+                          <div className="blog-image skeleton" style={{ height: '180px' }}></div>
+                          <div className="blog-body" style={{ minHeight: '180px' }}>
+                            <div className="skeleton skeleton-text short mb-2"></div>
+                            <div className="skeleton skeleton-text medium mb-3" style={{ height: '1.25rem' }}></div>
+                            <div className="skeleton skeleton-text long mb-2"></div>
+                            <div className="skeleton skeleton-text medium mb-3"></div>
+                            <div className="skeleton skeleton-button mt-auto" style={{ width: '80px', height: '1.25rem' }}></div>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
                   </>
                 ) : filteredPosts.length > 0 ? (
                   filteredPosts.map(p => {

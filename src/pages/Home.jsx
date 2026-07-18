@@ -274,9 +274,16 @@ export default function Home() {
           <div className="row gx-4 gx-lg-5" id="committees-container">
             {loadingCommittees ? (
               <>
-                <div className="col-lg-4 col-md-6 mb-4"><div className="skeleton skeleton-card"></div></div>
-                <div className="col-lg-4 col-md-6 mb-4"><div className="skeleton skeleton-card"></div></div>
-                <div className="col-lg-4 col-md-6 mb-4"><div className="skeleton skeleton-card"></div></div>
+                {[1, 2, 3].map(n => (
+                  <div key={n} className="col-lg-4 col-md-6 mb-4">
+                    <div className="committee-card">
+                      <div className="committee-icon skeleton skeleton-circle" style={{ margin: '0 auto 1.25rem' }}></div>
+                      <div className="skeleton skeleton-text medium mx-auto" style={{ height: '1.25rem', marginBottom: '1rem' }}></div>
+                      <div className="skeleton skeleton-text long mx-auto"></div>
+                      <div className="skeleton skeleton-text mx-auto"></div>
+                    </div>
+                  </div>
+                ))}
               </>
             ) : committees.length > 0 ? (
               committees.map((c, idx) => {

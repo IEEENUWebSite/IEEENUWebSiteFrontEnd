@@ -127,9 +127,23 @@ export default function Events() {
           <div className="row gx-4 gx-lg-5">
             {loading ? (
               <>
-                <div className="col-lg-4 col-md-6 mb-4"><div className="skeleton skeleton-card" style={{ height: '380px' }}></div></div>
-                <div className="col-lg-4 col-md-6 mb-4"><div className="skeleton skeleton-card" style={{ height: '380px' }}></div></div>
-                <div className="col-lg-4 col-md-6 mb-4"><div className="skeleton skeleton-card" style={{ height: '380px' }}></div></div>
+                {[1, 2, 3].map(n => (
+                  <div key={n} className="col-lg-4 col-md-6 mb-4">
+                    <div className="event-hub-card">
+                      <div className="event-image skeleton" style={{ height: '180px' }}></div>
+                      <div className="event-body">
+                        <div className="skeleton skeleton-text short mb-3" style={{ height: '1rem' }}></div>
+                        <div className="skeleton skeleton-text medium mb-3" style={{ height: '1.25rem' }}></div>
+                        <div className="skeleton skeleton-text short mb-2"></div>
+                        <div className="skeleton skeleton-text short mb-2"></div>
+                        <div className="skeleton skeleton-text long mt-3"></div>
+                      </div>
+                      <div className="event-footer">
+                        <div className="skeleton skeleton-button w-100" style={{ height: '2.5rem' }}></div>
+                      </div>
+                    </div>
+                  </div>
+                ))}
               </>
             ) : filteredEvents.length > 0 ? (
               filteredEvents.map(e => {

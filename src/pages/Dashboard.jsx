@@ -26,6 +26,15 @@ export default function Dashboard() {
   const [avatarPreview, setAvatarPreview] = useState('');
   const [profileSaveLoading, setProfileSaveLoading] = useState(false);
   const [profileFeedback, setProfileFeedback] = useState({ show: false, type: '', message: '' });
+  const [toasts, setToasts] = useState([]);
+
+  const showToast = (message, type = 'info') => {
+    const id = Date.now();
+    setToasts(prev => [...prev, { id, message, type }]);
+    setTimeout(() => {
+      setToasts(prev => prev.filter(t => t.id !== id));
+    }, 4000);
+  };
 
   useEffect(() => {
     if (!getToken()) {
@@ -169,11 +178,16 @@ export default function Dashboard() {
   };
 
   const updateTaskStatus = async (taskId, targetStatus) => {
+    const originalTasks = [...tasks];
+    const taskToMove = tasks.find(t => t.id === taskId);
+    if (!taskToMove) return;
+    setTasks(prev => prev.map(t => t.id === taskId ? { ...t, status: targetStatus } : t));
     try {
       await api.updateMyTaskStatus(taskId, targetStatus);
-      setTasks(prev => prev.map(t => t.id === taskId ? { ...t, status: targetStatus } : t));
     } catch (err) {
       console.error(err);
+      setTasks(originalTasks);
+      showToast('Failed to update task status. Reverting change.', 'error');
     }
   };
 
@@ -302,8 +316,31 @@ export default function Dashboard() {
               </div>
 
               {tasksLoading ? (
-                <div className="text-center py-5">
-                  <span className="btn-spinner d-inline-block" style={{ borderColor: 'var(--ieee-primary)', borderTopColor: 'transparent' }}></span>
+                <div className="kanban-board">
+                  {['ToDo', 'InProgress', 'Completed'].map(colKey => {
+                    const colName = colKey === 'ToDo' ? 'To Do' : colKey === 'InProgress' ? 'In Progress' : 'Completed';
+                    return (
+                      <div key={colKey} className={`kanban-column col-${colKey.toLowerCase()}`}>
+                        <div className="kanban-column-header">
+                          <h4>{colName}</h4>
+                          <span className="task-count skeleton" style={{ width: '20px', height: '1.25rem', borderRadius: '50%' }}></span>
+                        </div>
+                        <div className="kanban-column-body">
+                          {[1, 2].map(n => (
+                            <div key={n} className="kanban-card">
+                              <div className="skeleton skeleton-text medium mb-2" style={{ height: '1rem' }}></div>
+                              <div className="skeleton skeleton-text long mb-1"></div>
+                              <div className="skeleton skeleton-text mb-3"></div>
+                              <div className="card-footer-meta">
+                                <div className="skeleton skeleton-text short mb-0" style={{ height: '0.75rem', width: '80px' }}></div>
+                                <div className="skeleton skeleton-circle" style={{ width: '18px', height: '18px', borderRadius: '4px' }}></div>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    );
+                  })}
                 </div>
               ) : (
                 <div className="kanban-board">
@@ -382,8 +419,36 @@ export default function Dashboard() {
           {activeSection === 'attendance' && (
             <div className="dash-section active">
               {attendanceLoading ? (
-                <div className="text-center py-5">
-                  <span className="btn-spinner d-inline-block" style={{ borderColor: 'var(--ieee-primary)', borderTopColor: 'transparent' }}></span>
+                <div className="row g-4">
+                  <div className="col-lg-5">
+                    <div className="attendance-card text-center d-flex flex-column align-items-center justify-content-center" style={{ minHeight: '340px' }}>
+                      <div className="skeleton skeleton-circle mb-4" style={{ width: '180px', height: '180px' }}></div>
+                      <div className="row w-100 mt-2">
+                        <div className="col-6">
+                          <div className="skeleton skeleton-text short mx-auto"></div>
+                          <div className="skeleton skeleton-text medium mx-auto" style={{ height: '1.5rem' }}></div>
+                        </div>
+                        <div className="col-6">
+                          <div className="skeleton skeleton-text short mx-auto"></div>
+                          <div className="skeleton skeleton-text medium mx-auto" style={{ height: '1.5rem' }}></div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="col-lg-7">
+                    <div className="attendance-card" style={{ height: '100%', minHeight: '340px' }}>
+                      <div className="skeleton skeleton-text medium mb-4" style={{ height: '1.5rem' }}></div>
+                      {[1, 2, 3].map(n => (
+                        <div key={n} className="attendance-row d-flex justify-content-between align-items-center py-3 border-bottom">
+                          <div className="w-50">
+                            <div className="skeleton skeleton-text medium mb-2"></div>
+                            <div className="skeleton skeleton-text short mb-0"></div>
+                          </div>
+                          <div className="skeleton skeleton-button" style={{ width: '80px', height: '1.5rem', borderRadius: '50px' }}></div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
                 </div>
               ) : (
                 <div className="row g-4">
@@ -615,6 +680,14 @@ export default function Dashboard() {
           )}
         </div>
       </main>
+      <div className="toast-container">
+        {toasts.map(t => (
+          <div key={t.id} className={`toast-alert ${t.type}`}>
+            <i className={`bi ${t.type === 'success' ? 'bi-check-circle-fill text-success' : t.type === 'error' ? 'bi-exclamation-triangle-fill text-danger' : 'bi-info-circle-fill text-primary'}`}></i>
+            <span>{t.message}</span>
+          </div>
+        ))}
+      </div>
     </div>
   );
 }

@@ -53,15 +53,42 @@ export default function BlogPost() {
 
   if (loading) {
     return (
-      <div className="container py-5 mt-5">
-        <div className="row justify-content-center">
-          <div className="col-lg-8">
-            <div className="skeleton skeleton-card" style={{ height: '350px' }}></div>
+      <div>
+        <section className="page-section bg-ieee-light mt-5">
+          <div className="container px-4 px-lg-5">
+            <div className="row justify-content-center">
+              <div className="col-lg-8">
+                <div className="skeleton skeleton-text short mb-4" style={{ height: '1.25rem' }}></div>
+                <div className="article-content" style={{ background: '#fff', padding: '2.5rem', borderRadius: 'var(--ieee-radius)' }}>
+                  <header className="article-header">
+                    <div className="skeleton skeleton-header mb-3" style={{ height: '2.5rem', width: '90%' }}></div>
+                    <div className="article-meta mt-4 mb-3">
+                      <div className="d-flex align-items-center gap-2">
+                        <div className="skeleton skeleton-circle" style={{ width: '32px', height: '32px' }}></div>
+                        <div className="skeleton skeleton-text short mb-0" style={{ width: '100px', height: '0.85rem' }}></div>
+                      </div>
+                      <div className="skeleton skeleton-text short mb-0" style={{ width: '80px', height: '0.85rem' }}></div>
+                    </div>
+                  </header>
+                  <div className="skeleton mb-4" style={{ height: '350px', width: '100%' }}></div>
+                  <div className="article-body">
+                    <div className="skeleton skeleton-text long mb-2"></div>
+                    <div className="skeleton skeleton-text medium mb-2"></div>
+                    <div className="skeleton skeleton-text long mb-2"></div>
+                    <div className="skeleton skeleton-text short mb-4"></div>
+                    <div className="skeleton skeleton-text long mb-2"></div>
+                    <div className="skeleton skeleton-text long mb-2"></div>
+                    <div className="skeleton skeleton-text medium mb-2"></div>
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
-        </div>
+        </section>
       </div>
     );
   }
+
 
   if (!post) {
     return (
