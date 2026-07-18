@@ -35,7 +35,13 @@ export default function Navbar() {
 
   const handleHashLink = (hash) => {
     if (location.pathname !== '/') {
-      navigate('/' + hash);
+      navigate('/');
+      setTimeout(() => {
+        const element = document.querySelector(hash);
+        if (element) {
+          element.scrollIntoView({ behavior: 'smooth' });
+        }
+      }, 300);
     } else {
       const element = document.querySelector(hash);
       if (element) {
@@ -43,6 +49,7 @@ export default function Navbar() {
       }
     }
   };
+
 
   const isAdmin = member && ['admin', 'board', 'media', 'moderator'].includes((member.role || '').toLowerCase());
 
