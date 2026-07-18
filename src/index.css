@@ -2077,6 +2077,8 @@ a:hover { color: var(--ieee-primary-hover); }
 }
 .modal-admin .form-control,
 .modal-admin .form-select {
+  background: var(--ieee-white);
+  color: var(--ieee-dark);
   border-radius: var(--ieee-radius);
   border: 1px solid rgba(0,0,0,0.12);
   font-size: 0.88rem;
@@ -2084,8 +2086,16 @@ a:hover { color: var(--ieee-primary-hover); }
 }
 .modal-admin .form-control:focus,
 .modal-admin .form-select:focus {
+  background: var(--ieee-white);
+  color: var(--ieee-dark);
   border-color: var(--ieee-primary);
   box-shadow: 0 0 0 0.2rem rgba(var(--ieee-primary-rgb), 0.15);
+}
+.modal-admin .form-floating > label,
+.modal-admin .form-floating > .form-control:focus ~ label,
+.modal-admin .form-floating > .form-control:not(:placeholder-shown) ~ label,
+.modal-admin .form-floating > .form-select ~ label {
+  color: rgba(0, 0, 0, 0.6) !important;
 }
 .image-upload-box {
   border: 2px dashed rgba(0,0,0,0.12);

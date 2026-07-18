@@ -1,9 +1,10 @@
 import React, { useEffect, useState } from 'react';
-import { useParams, Link } from 'react-router-dom';
+import { useParams, Link, useNavigate } from 'react-router-dom';
 import { api } from '../services/api';
 
 export default function BlogPost() {
   const { id } = useParams();
+  const navigate = useNavigate();
   const [post, setPost] = useState(null);
   const [loading, setLoading] = useState(true);
   const [scrollProgress, setScrollProgress] = useState(0);
@@ -48,6 +49,34 @@ export default function BlogPost() {
 
     if (shareUrl) {
       window.open(shareUrl, '_blank', 'noopener,noreferrer');
+    }
+  };
+
+  const handleBodyClick = (e) => {
+    const targetLink = e.target.closest('a');
+    if (targetLink) {
+      const href = targetLink.getAttribute('href');
+      if (href) {
+        if (href === 'developer.html') {
+          e.preventDefault();
+          navigate('/developer');
+        } else if (href === 'index.html' || href === '/') {
+          e.preventDefault();
+          navigate('/');
+        } else if (href === 'events.html') {
+          e.preventDefault();
+          navigate('/events');
+        } else if (href === 'blog.html') {
+          e.preventDefault();
+          navigate('/blog');
+        } else if (href.startsWith('http://') || href.startsWith('https://') || href.startsWith('mailto:')) {
+          // Keep default
+        } else if (href.endsWith('.html')) {
+          e.preventDefault();
+          const cleanRoute = '/' + href.replace('.html', '');
+          navigate(cleanRoute);
+        }
+      }
     }
   };
 
@@ -136,7 +165,7 @@ export default function BlogPost() {
                   <img src={post.imageUrl} alt={post.title} className="article-feature-image" />
                 )}
 
-                <div className="article-body">
+                <div className="article-body" onClick={handleBodyClick}>
                   <div dangerouslySetInnerHTML={{ __html: post.content }}></div>
                 </div>
 
