@@ -1,8 +1,3 @@
-/* ============================================================
-   IEEE Nile University Student Branch — Design System
-   ============================================================ */
-
-/* --- 1. Design Tokens (CSS Custom Properties) --- */
 :root {
   --ieee-primary: #00b4d8;
   --ieee-primary-hover: #0077b6;
@@ -23,7 +18,6 @@
   --ieee-transition: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-/* --- 2. Base & Typography --- */
 html {
   scroll-behavior: smooth;
 }
@@ -34,6 +28,7 @@ body {
   line-height: 1.7;
   color: var(--ieee-dark);
   overflow-x: hidden;
+  background-color: var(--ieee-light);
 }
 
 h1, h2, h3, h4, h5, h6 {
@@ -58,7 +53,6 @@ a {
 }
 a:hover { color: var(--ieee-primary-hover); }
 
-/* --- 3. Utility Classes --- */
 .text-primary-ieee { color: var(--ieee-primary) !important; }
 .bg-ieee-dark { background-color: var(--ieee-dark) !important; }
 .bg-ieee-light { background-color: var(--ieee-light) !important; }
@@ -80,7 +74,6 @@ a:hover { color: var(--ieee-primary-hover); }
   border-color: rgba(255,255,255,0.6);
 }
 
-/* Glassmorphism */
 .glass {
   background: rgba(255,255,255,0.07);
   backdrop-filter: blur(16px);
@@ -96,7 +89,6 @@ a:hover { color: var(--ieee-primary-hover); }
   border-radius: var(--ieee-radius-lg);
 }
 
-/* --- 4. Navbar --- */
 #mainNav {
   padding: 1rem 0;
   transition: all var(--ieee-transition);
@@ -146,7 +138,6 @@ a:hover { color: var(--ieee-primary-hover); }
   box-shadow: 0 4px 20px rgba(0,0,0,0.3);
 }
 
-/* --- Custom Navbar Toggler & Responsive Menu --- */
 .navbar-toggler {
   border-color: rgba(var(--ieee-primary-rgb), 0.4) !important;
   padding: 0.4rem 0.6rem !important;
@@ -170,7 +161,6 @@ a:hover { color: var(--ieee-primary-hover); }
   }
 }
 
-/* --- 5. Hero / Masthead --- */
 .masthead {
   position: relative;
   min-height: 100vh;
@@ -178,7 +168,7 @@ a:hover { color: var(--ieee-primary-hover); }
   align-items: center;
   justify-content: center;
   background: linear-gradient(160deg, rgba(33,37,41,0.92) 0%, rgba(33,37,41,0.75) 50%, rgba(0,180,216,0.25) 100%),
-              url('../assets/hero-bg.png') center/cover no-repeat;
+              url('assets/hero-bg.png') center/cover no-repeat;
   overflow: hidden;
 }
 .masthead::before {
@@ -220,7 +210,6 @@ a:hover { color: var(--ieee-primary-hover); }
   margin: 0 auto;
 }
 
-/* Scroll indicator */
 .scroll-indicator {
   position: absolute;
   bottom: 2rem;
@@ -238,7 +227,6 @@ a:hover { color: var(--ieee-primary-hover); }
   50% { transform: translateX(-50%) translateY(10px); }
 }
 
-/* --- 6. Page Sections --- */
 .page-section {
   padding: 6rem 0;
   position: relative;
@@ -247,7 +235,6 @@ a:hover { color: var(--ieee-primary-hover); }
   background: linear-gradient(135deg, var(--ieee-primary) 0%, var(--ieee-primary-hover) 100%);
 }
 
-/* --- 7. About Section --- */
 .about-section {
   background: linear-gradient(135deg, var(--ieee-primary) 0%, var(--ieee-primary-hover) 100%);
   position: relative;
@@ -283,7 +270,6 @@ a:hover { color: var(--ieee-primary-hover); }
   margin-top: 0.5rem;
 }
 
-/* --- 8. Committee Cards --- */
 .committee-card {
   background: var(--ieee-white);
   border: 1px solid rgba(0,0,0,0.06);
@@ -348,7 +334,6 @@ a:hover { color: var(--ieee-primary-hover); }
   margin-bottom: 0;
 }
 
-/* --- 9. Events Section --- */
 .event-card {
   background: var(--ieee-white);
   border-radius: var(--ieee-radius);
@@ -381,7 +366,6 @@ a:hover { color: var(--ieee-primary-hover); }
   margin-bottom: 0;
 }
 
-/* --- 10. Recruitment Section --- */
 .recruitment-section {
   background: linear-gradient(180deg, var(--ieee-dark) 0%, #1a1d21 100%);
   position: relative;
@@ -396,7 +380,6 @@ a:hover { color: var(--ieee-primary-hover); }
   background: linear-gradient(90deg, transparent, var(--ieee-primary), transparent);
 }
 
-/* Form Styling */
 .form-floating > .form-control,
 .form-floating > .form-select {
   background: rgba(255,255,255,0.06);
@@ -445,7 +428,6 @@ a:hover { color: var(--ieee-primary-hover); }
   color: var(--ieee-white);
 }
 
-/* Contact section light form */
 .contact-section .form-floating > .form-control {
   background: var(--ieee-white);
   border: 1px solid rgba(0,0,0,0.1);
@@ -471,7 +453,6 @@ a:hover { color: var(--ieee-primary-hover); }
   color: var(--ieee-primary) !important;
 }
 
-/* Validation states */
 .form-control.is-invalid,
 .form-select.is-invalid {
   border-color: #dc3545;
@@ -487,7 +468,6 @@ a:hover { color: var(--ieee-primary-hover); }
   display: block;
 }
 
-/* --- 11. Buttons --- */
 .btn-ieee {
   font-family: var(--ieee-font-heading);
   font-weight: 700;
@@ -558,7 +538,6 @@ a:hover { color: var(--ieee-primary-hover); }
   box-shadow: 0 8px 25px rgba(0,0,0,0.1);
 }
 
-/* Loading spinner for buttons */
 .btn-loading {
   pointer-events: none;
   opacity: 0.8;
@@ -578,7 +557,6 @@ a:hover { color: var(--ieee-primary-hover); }
   to { transform: rotate(360deg); }
 }
 
-/* --- 12. Feedback Messages --- */
 .feedback-panel {
   padding: 1.25rem 1.5rem;
   border-radius: var(--ieee-radius);
@@ -599,7 +577,6 @@ a:hover { color: var(--ieee-primary-hover); }
   border: 1px solid rgba(220,53,69,0.25);
   color: #f06e7b;
 }
-/* Light-theme feedback (contact section) */
 .feedback-panel-light.success {
   background: rgba(40,167,69,0.08);
   border: 1px solid rgba(40,167,69,0.2);
@@ -615,7 +592,6 @@ a:hover { color: var(--ieee-primary-hover); }
   to { opacity: 1; transform: translateY(0); }
 }
 
-/* --- 13. Footer --- */
 .site-footer {
   background: var(--ieee-dark);
   padding: 4rem 0 2rem;
@@ -643,8 +619,8 @@ a:hover { color: var(--ieee-primary-hover); }
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 40px;
-  height: 40px;
+  width: 44px;
+  height: 44px;
   border-radius: 50%;
   background: rgba(255,255,255,0.08);
   color: rgba(255,255,255,0.6);
@@ -664,7 +640,6 @@ a:hover { color: var(--ieee-primary-hover); }
   font-size: 0.82rem;
 }
 
-/* --- 14. Skeleton Loading --- */
 .skeleton {
   background: linear-gradient(90deg, rgba(0,0,0,0.06) 25%, rgba(0,0,0,0.1) 50%, rgba(0,0,0,0.06) 75%);
   background-size: 200% 100%;
@@ -680,7 +655,6 @@ a:hover { color: var(--ieee-primary-hover); }
   border-radius: var(--ieee-radius);
 }
 
-/* --- 15. Scroll Animations --- */
 .reveal {
   opacity: 0;
   transform: translateY(30px);
@@ -691,7 +665,6 @@ a:hover { color: var(--ieee-primary-hover); }
   transform: translateY(0);
 }
 
-/* --- 16. Responsive --- */
 @media (max-width: 991.98px) {
   #mainNav {
     background: rgba(33,37,41,0.95);
@@ -710,11 +683,6 @@ a:hover { color: var(--ieee-primary-hover); }
   .stat-number { font-size: 2rem; }
 }
 
-/* ============================================================
-   MILESTONE 1 — Public Hub Pages
-   ============================================================ */
-
-/* --- 17. Page Banner (Reusable Sub-page Header) --- */
 .page-banner {
   background: linear-gradient(160deg, var(--ieee-dark) 0%, #1a1d21 60%, rgba(0,180,216,0.15) 100%);
   padding: 8rem 0 4rem;
@@ -744,7 +712,6 @@ a:hover { color: var(--ieee-primary-hover); }
   margin: 0 auto;
 }
 
-/* --- 18. Filter Bar --- */
 .filter-bar {
   display: flex;
   gap: 0.5rem;
@@ -777,7 +744,6 @@ a:hover { color: var(--ieee-primary-hover); }
   box-shadow: 0 4px 15px rgba(var(--ieee-primary-rgb), 0.3);
 }
 
-/* --- 19. Event Hub Cards --- */
 .event-hub-card {
   background: var(--ieee-white);
   border: 1px solid rgba(0,0,0,0.06);
@@ -872,7 +838,6 @@ a:hover { color: var(--ieee-primary-hover); }
   padding: 0 1.5rem 1.5rem;
 }
 
-/* --- 20. Registration Modal (Dark themed) --- */
 .modal-ieee .modal-content {
   background: var(--ieee-dark);
   border: 1px solid rgba(255,255,255,0.08);
@@ -899,7 +864,6 @@ a:hover { color: var(--ieee-primary-hover); }
   padding: 1rem 1.75rem;
 }
 
-/* --- 21. Blog Grid Cards --- */
 .blog-card {
   background: var(--ieee-white);
   border: 1px solid rgba(0,0,0,0.06);
@@ -983,7 +947,6 @@ a:hover { color: var(--ieee-primary-hover); }
   letter-spacing: 0.12em;
 }
 
-/* --- 22. Blog Sidebar --- */
 .blog-sidebar .sidebar-card {
   background: var(--ieee-white);
   border: 1px solid rgba(0,0,0,0.06);
@@ -1068,7 +1031,6 @@ a:hover { color: var(--ieee-primary-hover); }
   color: rgba(255,255,255,0.4);
 }
 
-/* --- 23. Article View --- */
 .reading-progress {
   position: fixed;
   top: 0;
@@ -1176,7 +1138,6 @@ a:hover { color: var(--ieee-primary-hover); }
   color: inherit;
 }
 
-/* Share links */
 .share-bar {
   display: flex;
   align-items: center;
@@ -1214,7 +1175,6 @@ a:hover { color: var(--ieee-primary-hover); }
   transform: translateY(-2px);
 }
 
-/* Back link */
 .back-link {
   display: inline-flex;
   align-items: center;
@@ -1231,7 +1191,6 @@ a:hover { color: var(--ieee-primary-hover); }
   gap: 0.6rem;
 }
 
-/* --- 24. Empty state --- */
 .empty-state {
   text-align: center;
   padding: 4rem 2rem;
@@ -1247,14 +1206,12 @@ a:hover { color: var(--ieee-primary-hover); }
   margin: 0 auto;
 }
 
-/* --- 25. Subpage Navbar Override --- */
 .navbar-subpage {
   background: rgba(33,37,41,0.95);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
 }
 
-/* --- Responsive additions --- */
 @media (max-width: 991.98px) {
   .page-banner { padding: 7rem 0 3rem; }
 }
@@ -1263,11 +1220,6 @@ a:hover { color: var(--ieee-primary-hover); }
   .article-content .article-meta { gap: 0.75rem; }
 }
 
-/* ============================================================
-   MILESTONE 2 — Login & Member Dashboard
-   ============================================================ */
-
-/* --- 26. Login Page --- */
 .login-page {
   min-height: 100vh;
   display: flex;
@@ -1339,7 +1291,6 @@ a:hover { color: var(--ieee-primary-hover); }
   color: var(--ieee-white);
 }
 
-/* --- 27. Dashboard Layout --- */
 .dashboard-wrapper {
   display: flex;
   min-height: 100vh;
@@ -1457,7 +1408,6 @@ a:hover { color: var(--ieee-primary-hover); }
   display: block;
 }
 
-/* Mobile sidebar toggle */
 .sidebar-toggle {
   display: none;
   background: none;
@@ -1475,7 +1425,6 @@ a:hover { color: var(--ieee-primary-hover); }
   z-index: 899;
 }
 
-/* --- 28. Kanban Board --- */
 .kanban-board {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
@@ -1527,7 +1476,6 @@ a:hover { color: var(--ieee-primary-hover); }
 .kanban-column.col-progress .kanban-column-header { border-top: 3px solid var(--ieee-primary); }
 .kanban-column.col-done .kanban-column-header { border-top: 3px solid #28a745; }
 
-/* Kanban Cards */
 .kanban-card {
   background: var(--ieee-white);
   border: 1px solid rgba(0,0,0,0.07);
@@ -1599,7 +1547,6 @@ a:hover { color: var(--ieee-primary-hover); }
   border-color: var(--ieee-primary);
 }
 
-/* --- 29. Attendance Gauge --- */
 .attendance-card {
   background: var(--ieee-white);
   border: 1px solid rgba(0,0,0,0.06);
@@ -1692,7 +1639,6 @@ a:hover { color: var(--ieee-primary-hover); }
   color: #dc3545;
 }
 
-/* --- 30. Profile Card --- */
 .profile-card {
   background: var(--ieee-white);
   border: 1px solid rgba(0,0,0,0.06);
@@ -1762,7 +1708,6 @@ a:hover { color: var(--ieee-primary-hover); }
   font-weight: 500;
 }
 
-/* --- 31. Dashboard Cards (stat) --- */
 .dash-stat-card {
   background: var(--ieee-white);
   border: 1px solid rgba(0,0,0,0.06);
@@ -1814,7 +1759,6 @@ a:hover { color: var(--ieee-primary-hover); }
   letter-spacing: 0.04em;
 }
 
-/* --- Responsive Dashboard --- */
 @media (max-width: 991.98px) {
   .dash-sidebar { transform: translateX(-100%); }
   .dash-sidebar.open { transform: translateX(0); }
@@ -1829,11 +1773,6 @@ a:hover { color: var(--ieee-primary-hover); }
   .login-card { padding: 2rem 1.5rem; margin: 1rem; }
 }
 
-/* ============================================================
-   MILESTONE 3 — Profile Editor & Admin Desk
-   ============================================================ */
-
-/* --- 32. Profile Picture Avatar --- */
 .profile-avatar.has-image {
   padding: 0;
   overflow: hidden;
@@ -1853,7 +1792,6 @@ a:hover { color: var(--ieee-primary-hover); }
   object-fit: cover;
 }
 
-/* --- 33. Profile Editor --- */
 .profile-edit-btn {
   position: absolute;
   bottom: -18px;
@@ -1935,7 +1873,6 @@ a:hover { color: var(--ieee-primary-hover); }
   color: var(--ieee-primary);
 }
 
-/* --- 34. Admin Tables --- */
 .admin-table-card {
   background: var(--ieee-white);
   border: 1px solid rgba(0,0,0,0.06);
@@ -1999,7 +1936,6 @@ a:hover { color: var(--ieee-primary-hover); }
   font-size: 1rem;
 }
 
-/* Action buttons in tables */
 .table-action-btn {
   width: 30px;
   height: 30px;
@@ -2025,7 +1961,6 @@ a:hover { color: var(--ieee-primary-hover); }
   border-color: #dc3545;
 }
 
-/* --- 35. Admin Modal Forms --- */
 .modal-admin .modal-content {
   border-radius: var(--ieee-radius-lg);
   border: none;
@@ -2102,7 +2037,6 @@ a:hover { color: var(--ieee-primary-hover); }
   cursor: pointer;
 }
 
-/* Toggle switch for IsPublic */
 .form-check-ieee .form-check-input:checked {
   background-color: var(--ieee-primary);
   border-color: var(--ieee-primary);
@@ -2111,7 +2045,6 @@ a:hover { color: var(--ieee-primary-hover); }
   box-shadow: 0 0 0 0.2rem rgba(var(--ieee-primary-rgb), 0.2);
 }
 
-/* Status badges for admin tables */
 .admin-badge {
   font-family: var(--ieee-font-heading);
   font-size: 0.7rem;
@@ -2138,14 +2071,12 @@ a:hover { color: var(--ieee-primary-hover); }
   color: var(--ieee-secondary);
 }
 
-/* --- Admin Responsive --- */
 @media (max-width: 991.98px) {
   .admin-table { font-size: 0.8rem; }
   .admin-table thead th,
   .admin-table tbody td { padding: 0.6rem 0.75rem; }
 }
 
-/* Table Avatars in Admin Member Manager */
 .table-img {
   width: 36px;
   height: 36px;
@@ -2170,7 +2101,6 @@ a:hover { color: var(--ieee-primary-hover); }
   border: 1px solid rgba(var(--ieee-primary-rgb), 0.25);
 }
 
-/* --- 18. About the Developer Section --- */
 .developer-card {
   background: var(--ieee-white);
   border-radius: var(--ieee-radius-lg);
