@@ -102,9 +102,13 @@ export default function Login() {
             <div className="validation-message show">{errors.password}</div>
           </div>
 
-          <button className="btn btn-ieee btn-ieee-primary w-100" type="submit" disabled={loading}>
+          <button className="btn btn-ieee btn-ieee-primary w-100 mb-3" type="submit" disabled={loading}>
             <span className="btn-text">Sign In</span>
             {loading && <span className="btn-spinner d-inline-block"></span>}
+          </button>
+
+          <button className="btn btn-ieee btn-ieee-outline w-100" type="button" onClick={() => navigate('/')}>
+            Back to Homepage
           </button>
         </form>
 
