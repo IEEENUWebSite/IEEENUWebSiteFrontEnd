@@ -137,7 +137,7 @@ export default function BlogPost() {
                 )}
 
                 <div className="article-body">
-                  <div style={{ whiteSpace: 'pre-wrap' }}>{post.content}</div>
+                  <div dangerouslySetInnerHTML={{ __html: post.content }}></div>
                 </div>
 
                 <footer className="share-bar">

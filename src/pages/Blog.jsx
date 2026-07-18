@@ -67,7 +67,8 @@ export default function Blog() {
                   filteredPosts.map(p => {
                     const dateStr = new Date(p.publishedDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
                     const authorName = p.author ? p.author.fullName : 'Unknown';
-                    const excerpt = p.content.length > 100 ? p.content.substring(0, 100) + '...' : p.content;
+                    const cleanContent = p.content.replace(/<[^>]*>/g, '');
+                    const excerpt = cleanContent.length > 100 ? cleanContent.substring(0, 100) + '...' : cleanContent;
 
                     return (
                       <div key={p.id} className="col-md-6 mb-4">
