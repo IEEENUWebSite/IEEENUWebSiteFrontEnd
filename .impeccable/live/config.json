@@ -1,9 +1,0 @@
-{
-  "files": [
-    "*.html",
-    "member/*.html"
-  ],
-  "insertBefore": "</body>",
-  "commentSyntax": "html",
-  "cspChecked": true
-}
